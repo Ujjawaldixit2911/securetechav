@@ -19,6 +19,9 @@ start "Design Four (Port 5004)" cmd /k "cd design_four && python app.py"
 echo Starting Design 5 (Port 5005 - React)...
 start "Design Five (Port 5005 - React)" cmd /k "cd design_five && npm run dev"
 
+echo Starting Design 6 (Port 5006 - Premium Vanilla)...
+start "Design Six (Port 5006)" cmd /k "cd design_six && npm run dev"
+
 echo.
 echo ==========================================
 echo  ALL SERVERS INITIALIZED!
@@ -28,6 +31,7 @@ echo  2. Design Two (Minimalist): http://localhost:5002
 echo  3. Design Three (Bento): http://localhost:5003
 echo  4. Design Four (3D Switcher): http://localhost:5004
 echo  5. Design Five (Corporate React): http://localhost:5005
+echo  6. Design Six (Premium Vanilla): http://localhost:5006
 echo ==========================================
 echo.
 pause

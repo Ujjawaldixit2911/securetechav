@@ -1,0 +1,115 @@
+.clients-section {
+  position: relative;
+  background-color: var(--secondary);
+  padding: 3rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.clients-container {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.clients-intro-row {
+  flex-shrink: 0;
+  max-width: 250px;
+}
+
+.clients-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  display: block;
+}
+
+.clients-intro-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+.clients-marquee-wrapper {
+  overflow: hidden;
+  position: relative;
+  flex-grow: 1;
+  padding: 0.5rem 0;
+}
+
+.clients-marquee-wrapper::before,
+.clients-marquee-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.clients-marquee-wrapper::before {
+  left: 0;
+  background: linear-gradient(to right, var(--secondary) 0%, rgba(245, 247, 250, 0) 100%);
+}
+
+.clients-marquee-wrapper::after {
+  right: 0;
+  background: linear-gradient(to left, var(--secondary) 0%, rgba(245, 247, 250, 0) 100%);
+}
+
+.clients-marquee-track {
+  display: flex;
+  gap: 3rem;
+  width: calc(180px * 16);
+  animation: clientsMarqueeScroll 25s linear infinite;
+}
+
+.clients-marquee-item {
+  width: 150px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  opacity: 0.65;
+  transition: var(--transition-smooth);
+}
+
+.clients-marquee-item:hover {
+  color: var(--primary);
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.client-logo-svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes clientsMarqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-198px * 8));
+  }
+}
+
+@media (max-width: 1024px) {
+  .clients-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.5rem;
+  }
+  
+  .clients-intro-row {
+    max-width: 100%;
+  }
+}

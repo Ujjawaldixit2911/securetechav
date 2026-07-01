@@ -1,0 +1,131 @@
+.solutions-section {
+  position: relative;
+  background-color: var(--secondary);
+}
+
+.solutions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+}
+
+.solution-card {
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: var(--transition-smooth);
+}
+
+.solution-media {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  background-color: var(--secondary);
+}
+
+.solution-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--transition-smooth);
+}
+
+.solution-card-body {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  position: relative;
+}
+
+.solution-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background-color: rgba(15, 76, 129, 0.08);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  margin-top: -42px;
+  position: relative;
+  z-index: 2;
+  border: 3px solid var(--background);
+  transition: var(--transition-smooth);
+}
+
+.solution-card h3 {
+  font-size: 1.2rem;
+  margin: 1rem 0 0.75rem 0;
+  color: var(--primary);
+}
+
+.solution-card p {
+  font-size: 0.925rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+.solution-action-link {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  transition: var(--transition-smooth);
+}
+
+.solution-action-link svg {
+  transition: var(--transition-smooth);
+}
+
+.solution-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+}
+
+.solution-card:hover .solution-img {
+  transform: scale(1.08);
+}
+
+.solution-card:hover .solution-card-icon {
+  background-color: var(--primary);
+  color: #FFFFFF;
+}
+
+.solution-card:hover .solution-action-link {
+  color: var(--accent);
+}
+
+.solution-card:hover .solution-action-link svg {
+  transform: translateX(5px);
+}
+
+@media (max-width: 1200px) {
+  .solutions-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .solutions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .solutions-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
