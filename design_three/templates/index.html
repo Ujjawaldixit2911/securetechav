@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+
+    <!-- ══ PRIMARY SEO ══ -->
+    <title>SecureTechAV — Live Security HUD Dashboard | Cyber-Noir</title>
+    <meta name="description" content="SecureTechAV is an elite cybersecurity command-center and real-time defense grid. Tempered by 10 million attacks." />
+    <link rel="icon" href="{{ url_for('static', filename='image-5@2x.webp') }}" />
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- 100% STANDALONE VANILLA CSS (No Tailwind dependency to avoid offline/CDN load issues) -->
+    <style>
+        :root {
+            --hud-black: #06070A;
+            --hud-cyan: #FF3838; /* Red Accent replacing Cyan */
+            --hud-violet: #B91C1C; /* Crimson Accent replacing Violet */
+            --hud-red: #FF3838;
+            --text-bright: #FFFFFF;
+            --text-muted: #E2E8F0; /* Brighter slate-200 for maximum readability */
+            --text-dim: #94A3B8; /* Brighter slate-400 for maximum readability */
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.12);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: transparent; /* CRITICAL: Transparent to let the fixed background layer show through */
+            color: var(--text-muted);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            letter-spacing: -0.01em;
+        }
+
+        /* Fixed Full-page Background layer */
+        #hud-background-container {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            overflow: hidden;
+            background-color: var(--hud-black); /* CRITICAL: Solid color is placed here so it runs behind the grid canvas and glows */
+        }
+
+        #grid-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Glow Blobs (Enhanced Opacity for better contrast visibility) */
+        .glow-blob {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
+        .blob-1 {
+            width: 45vw;
+            height: 45vw;
+            background: radial-gradient(circle, rgba(255, 56, 56, 0.16) 0%, transparent 70%);
+            top: 5%;
+            left: 5%;
+            animation: drift-1 25s ease-in-out infinite;
+        }
+
+        .blob-2 {
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(185, 28, 28, 0.15) 0%, transparent 70%);
+            top: 35%;
+            right: 5%;
+            animation: drift-2 30s ease-in-out infinite;
+        }
+
+        .blob-3 {
+            width: 40vw;
+            height: 40vw;
+            background: radial-gradient(circle, rgba(255, 56, 56, 0.12) 0%, transparent 70%);
+            bottom: 10%;
+            left: 15%;
+            animation: drift-3 22s ease-in-out infinite;
+        }
+
+        @keyframes drift-1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(8%, 10%) scale(1.1); }
+        }
+        @keyframes drift-2 {
+            0%, 100% { transform: translate(0, 0) scale(1.05); }
+            50% { transform: translate(-8%, -10%) scale(0.9); }
+        }
+        @keyframes drift-3 {
+            0%, 100% { transform: translate(0, 0) scale(0.95); }
+            50% { transform: translate(6%, -6%) scale(1.05); }
+        }
+
+        /* Container Rules */
+        .container-hud {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-left: 24px;
+            padding-right: 24px;
+            box-sizing: border-box;
+        }
+
+        /* Section Layouts */
+        .section-wrap {
+            padding: 100px 0;
+            position: relative;
+            z-index: 1;
+            box-sizing: border-box;
+            background: transparent;
+        }
+
+        /* Navbar */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(6, 7, 10, 0.7);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: 76px;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-bright);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-text span.accent-span {
+            color: var(--hud-cyan);
+            font-weight: 300;
+        }
+
+        header nav {
+            display: flex;
+            gap: 32px;
+        }
+
+        header nav a {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        header nav a:hover {
+            color: var(--hud-cyan);
+        }
+
+        .nav-btn-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn-ghost-nav {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        .btn-ghost-nav:hover {
+            color: var(--text-bright);
+        }
+
+        /* Mobile Hamburger */
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .hamburger span {
+            width: 24px;
+            height: 2px;
+            background-color: var(--text-bright);
+            transition: all 0.3s ease;
+        }
+
+        #mobile-menu {
+            display: none;
+            position: fixed;
+            inset: 0;
+            top: 76px;
+            background: rgba(6, 7, 10, 0.98);
+            backdrop-filter: blur(24px);
+            padding: 40px;
+            flex-direction: column;
+            gap: 24px;
+            z-index: 99;
+            align-items: center;
+        }
+
+        #mobile-menu a {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        /* Custom components */
+        .hud-panel {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 32px;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-sizing: border-box;
+        }
+
+        .hud-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--hud-cyan), transparent);
+            transition: all 0.5s ease;
+        }
+
+        .hud-panel:hover::before {
+            left: 100%;
+        }
+
+        .hud-panel:hover {
+            border-color: rgba(34, 211, 238, 0.4);
+            box-shadow: 0 10px 30px rgba(34, 211, 238, 0.08);
+            transform: translateY(-2px);
+        }
+
+        /* Buttons definition */
+        .btn-hud-primary {
+            background: linear-gradient(135deg, var(--hud-cyan) 0%, var(--hud-violet) 100%);
+            color: var(--text-bright);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 4px;
+            display: inline-block;
+            cursor: pointer;
+            text-decoration: none;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: center;
+        }
+
+        .btn-hud-primary:hover {
+            box-shadow: 0 0 25px rgba(34, 211, 238, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .btn-hud-primary:active {
+            transform: scale(0.97);
+        }
+
+        .btn-hud-outline {
+            background: transparent;
+            color: var(--text-bright);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 13px 32px;
+            border-radius: 4px;
+            display: inline-block;
+            cursor: pointer;
+            text-decoration: none;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: center;
+        }
+
+        .btn-hud-outline:hover {
+            border-color: var(--hud-cyan);
+            color: var(--hud-cyan);
+            transform: translateY(-2px);
+        }
+
+        .btn-hud-outline:active {
+            transform: scale(0.97);
+        }
+
+        .btn-hud-ghost {
+            background: transparent;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0;
+        }
+
+        .btn-hud-ghost:hover {
+            color: var(--hud-cyan);
+            text-decoration: underline;
+            text-shadow: 0 0 10px rgba(34, 211, 238, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-hud-ghost:active {
+            transform: scale(0.97);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 15px rgba(34, 211, 238, 0.6);
+        }
+
+        .terminal-text {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--hud-cyan);
+            background: rgba(34, 211, 238, 0.05);
+            border: 1px solid rgba(34, 211, 238, 0.15);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .live-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--hud-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--hud-cyan);
+            animation: pulse-dot 1.5s infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes pulse-dot {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        /* Viewfinder Frame decoration */
+        .hud-viewfinder-wrap {
+            position: relative;
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+        }
+
+        .viewfinder-corner-tl { position: absolute; top: 0; left: 0; width: 16px; height: 16px; border-t-2 border-l-2 border-hud-cyan; }
+        .viewfinder-corner-tr { position: absolute; top: 0; right: 0; width: 16px; height: 16px; border-t-2 border-r-2 border-hud-cyan; }
+        .viewfinder-corner-bl { position: absolute; bottom: 0; left: 0; width: 16px; height: 16px; border-b-2 border-l-2 border-hud-cyan; }
+        .viewfinder-corner-br { position: absolute; bottom: 0; right: 0; width: 16px; height: 16px; border-b-2 border-r-2 border-hud-cyan; }
+
+        /* Grid divider line */
+        .grid-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--hud-cyan) 50%, transparent);
+            opacity: 0.3;
+            position: relative;
+            margin: 60px 0;
+        }
+
+        .grid-divider-glow {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 2px;
+            background-color: var(--hud-cyan);
+            filter: blur(3px);
+        }
+
+        /* Radar sweep line */
+        .scan-line {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.15) 50%, transparent);
+            animation: sweep 4s linear infinite;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        @keyframes sweep {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        /* Hero */
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-left {
+            position: relative;
+        }
+
+        .hero-badge-row {
+            margin-bottom: 24px;
+        }
+
+        .hero-title {
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1.1;
+            color: var(--text-bright);
+            margin: 0 0 24px 0;
+            letter-spacing: -2px;
+        }
+
+        .hero-title span.gradient-text {
+            background: linear-gradient(135deg, var(--hud-cyan), var(--hud-violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 18px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-width: 520px;
+            margin: 0 0 40px 0;
+            font-weight: 300;
+        }
+
+        .hero-btn-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .hero-stats-row {
+            display: flex;
+            gap: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 32px;
+        }
+
+        .hero-stat-col {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .hero-stat-val {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--hud-cyan);
+        }
+
+        .hero-stat-lbl {
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-top: 6px;
+            text-transform: uppercase;
+        }
+
+        .hero-right {
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+
+        .hero-glow-shadow {
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            background: rgba(34, 211, 238, 0.1);
+            filter: blur(80px);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .hero-right-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Features */
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 60px auto;
+        }
+
+        .section-eyebrow {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 3px;
+            color: var(--hud-cyan);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .section-title {
+            font-size: 40px;
+            font-weight: 800;
+            color: var(--text-bright);
+            margin: 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 24px;
+            transition: transform 0.3s;
+        }
+
+        .hud-panel:hover .feature-icon {
+            transform: scale(1.1);
+            text-shadow: 0 0 10px var(--hud-cyan);
+        }
+
+        .feature-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin: 0 0 12px 0;
+        }
+
+        .feature-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin: 0;
+            font-weight: 300;
+        }
+
+        /* About Section */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .about-left {
+            position: relative;
+        }
+
+        .about-right {
+            box-sizing: border-box;
+        }
+
+        .about-bullets-list {
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .about-bullet-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 20px;
+        }
+
+        .bullet-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--hud-cyan);
+            margin-top: 3px;
+        }
+
+        .bullet-content h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin: 0;
+        }
+
+        .bullet-content p {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin: 4px 0 0 0;
+        }
+
+        /* Threat Feed */
+        .threat-feed-container {
+            max-width: 800px;
+            margin: 0 auto 60px auto;
+        }
+
+        .feed-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-dim);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .feed-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            transition: all 0.5s ease;
+        }
+
+        .feed-time {
+            color: var(--text-dim);
+        }
+
+        .feed-vector {
+            color: var(--text-bright);
+        }
+
+        .feed-badge {
+            color: var(--hud-red);
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        .stars-row {
+            color: var(--hud-cyan);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            margin-bottom: 16px;
+        }
+
+        .testimonial-quote {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--text-muted);
+            margin: 0 0 24px 0;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-bright);
+        }
+
+        /* Pricing */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            max-width: 1000px;
+            margin: 0 auto;
+            align-items: stretch;
+        }
+
+        .price-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .price-card.pro-card {
+            border-color: rgba(34, 211, 238, 0.6);
+            box-shadow: 0 0 30px rgba(34, 211, 238, 0.15);
+            transform: scale(1.03);
+            z-index: 10;
+        }
+
+        .price-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .price-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin: 0;
+        }
+
+        .price-tier-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            color: var(--text-dim);
+        }
+
+        .price-amount {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 40px;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-bottom: 24px;
+        }
+
+        .price-amount.pro-amount {
+            color: var(--hud-cyan);
+        }
+
+        .price-amount span {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-weight: 400;
+        }
+
+        .price-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 40px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .price-features li {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .price-features li.disabled {
+            text-decoration: line-through;
+            color: var(--text-dim);
+            opacity: 0.5;
+        }
+
+        .pro-badge-wrap {
+            text-align: right;
+            margin-bottom: 12px;
+        }
+
+        .pro-badge {
+            background-color: var(--hud-cyan);
+            color: var(--hud-black);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* CTA */
+        .cta-box {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        .cta-title {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--text-bright);
+            margin-bottom: 16px;
+        }
+
+        .cta-desc {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--hud-cyan);
+            margin-bottom: 40px;
+        }
+
+        .cta-input-group {
+            display: flex;
+            gap: 12px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .cta-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-bright);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            padding: 14px 20px;
+            border-radius: 4px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .cta-input:focus {
+            border-color: var(--hud-cyan);
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
+        }
+
+        /* Footer */
+        footer {
+            background-color: rgba(0, 0, 0, 0.4);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 80px 0 40px 0;
+            font-family: 'JetBrains Mono', monospace;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+
+        .footer-logo-desc p {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-width: 320px;
+            margin: 20px 0 0 0;
+        }
+
+        .footer-col h4 {
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--hud-cyan);
+            text-transform: uppercase;
+            margin: 0 0 24px 0;
+        }
+
+        .footer-col ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .footer-bottom-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        /* Float Keyframe */
+        .float-anim {
+            animation: hud-float 6s ease-in-out infinite;
+        }
+
+        @keyframes hud-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* Reveal animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(35px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero-grid, .features-grid, .about-grid, .testimonials-grid, .pricing-grid, .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .price-card.pro-card {
+                transform: none;
+            }
+
+            header nav, .nav-btn-group {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .hero-title {
+                font-size: 44px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-btn-row {
+                flex-direction: column;
+            }
+
+            .cta-input-group {
+                flex-direction: column;
+                max-width: 100%;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+
+        /* Reduced motion preferences */
+        @media (prefers-reduced-motion: reduce) {
+            .scan-line {
+                animation: none !important;
+                display: none !important;
+            }
+            .float-anim {
+                animation: none !important;
+                transform: none !important;
+            }
+            .live-dot {
+                animation: none !important;
+            }
+            .blob-1, .blob-2, .blob-3 {
+                animation: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- One Continuous Background Layer running behind entire page -->
+    <div id="hud-background-container">
+        <!-- Grid Canvas -->
+        <canvas id="grid-canvas"></canvas>
+        
+        <!-- Drifting soft glows -->
+        <div class="glow-blob blob-1"></div>
+        <div class="glow-blob blob-2"></div>
+        <div class="glow-blob blob-3"></div>
+    </div>
+
+    <!-- HEADER -->
+    <header>
+        <div class="container-hud nav-inner">
+            <a href="/" class="logo-wrap">
+                <img src="{{ url_for('static', filename='just_logo_no_text.png') }}" alt="SecureTechAV Logo" class="h-9 w-auto filter brightness-200" style="height: 36px;" />
+                <span class="logo-text">
+                    SecureTech<span class="accent-span">AV</span>
+                    <span class="terminal-text" style="font-size: 8px; margin-left: 8px;"><span class="live-dot"></span>ACTIVE</span>
+                </span>
+            </a>
+            
+            <nav>
+                <a href="#home">Home</a>
+                <a href="#features">Features</a>
+                <a href="#about">About</a>
+                <a href="#feed">Threat Feed</a>
+                <a href="#pricing">Pricing</a>
+            </nav>
+
+            <div class="nav-btn-group">
+                <button class="btn-ghost-nav">[ LOG_IN ]</button>
+                <a href="#pricing" class="btn-hud-primary">Get Protected</a>
+            </div>
+
+            <!-- Hamburger Button -->
+            <button id="menu-btn" class="hamburger" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Dropdown Menu -->
+    <div id="mobile-menu">
+        <a href="#home" class="mobile-link">Home</a>
+        <a href="#features" class="mobile-link">Features</a>
+        <a href="#about" class="mobile-link">About</a>
+        <a href="#feed" class="mobile-link">Threat Feed</a>
+        <a href="#pricing" class="mobile-link">Pricing</a>
+        <a href="#pricing" class="btn-hud-primary mobile-link mt-4">Get Protected</a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main style="padding-top: 76px;">
+        
+        <!-- HERO -->
+        <section id="home" class="section-wrap" style="min-h-screen: 100vh; display: flex; align-items: center; padding: 120px 0;">
+            <!-- Scan line radar sweep -->
+            <div class="scan-line"></div>
+            
+            <div class="container-hud hero-grid">
+                <!-- Left Details -->
+                <div class="reveal">
+                    <div class="hero-badge-row">
+                        <span class="terminal-text"><span class="live-dot"></span>🛰️ Live Threat Monitoring — 2025 Edition</span>
+                    </div>
+                    
+                    <h1 class="hero-title">
+                        Your Digital<br/>
+                        Fortress Is<br/>
+                        <span class="gradient-text glow-text">Always Watching</span>
+                    </h1>
+                    
+                    <p class="hero-desc">
+                        Deploy next-generation protection vectors. Our neural threat monitoring engine analyzes and deletes malware, system exploits, and ransomware leaks in real-time.
+                    </p>
+                    
+                    <div class="hero-btn-row">
+                        <a href="#pricing" class="btn-hud-primary">Activate Protection</a>
+                        <a href="#features" class="btn-hud-outline">Watch Demo</a>
+                    </div>
+
+                    <!-- Live stats readout row in monospace -->
+                    <div class="hero-stats-row">
+                        <div class="hero-stat-col">
+                            <div class="hero-stat-val glow-text stat-count" id="hud-threat-stats" data-target="482193" data-decimals="0" data-suffix="">0</div>
+                            <div class="hero-stat-lbl">THREATS BLOCKED TODAY</div>
+                        </div>
+                        <div class="hero-stat-col">
+                            <div class="hero-stat-val glow-text">99.9%</div>
+                            <div class="hero-stat-lbl">SYSTEM UPTIME</div>
+                        </div>
+                        <div class="hero-stat-col">
+                            <div class="hero-stat-val glow-text">24/7</div>
+                            <div class="hero-stat-lbl">RADAR SCANNING</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right side -->
+                <div class="hero-right reveal">
+                    <div class="hero-glow-shadow"></div>
+                    
+                    <div class="hud-viewfinder-wrap float-anim" style="max-width: 420px; width: 100%; box-sizing: border-box;">
+                        <!-- Viewfinder brackets -->
+                        <div class="viewfinder-corner-tl"></div>
+                        <div class="viewfinder-corner-tr"></div>
+                        <div class="viewfinder-corner-bl"></div>
+                        <div class="viewfinder-corner-br"></div>
+                        
+                        <img src="{{ url_for('static', filename='securetech_av.png') }}" class="hero-right-img" alt="SecureTechAV App Mockup" />
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STREAM DIVIDER -->
+        <div class="grid-divider"><div class="grid-divider-glow"></div></div>
+
+        <!-- FEATURES -->
+        <section id="features" class="section-wrap">
+            <div class="container-hud">
+                <!-- Header -->
+                <div class="section-header reveal">
+                    <span class="section-eyebrow">// FEATURES</span>
+                    <h2 class="section-title">Real-Time Defense Grid</h2>
+                    <p style="color: var(--text-dim); font-size: 14px; margin-top: 12px;">Deploying cyber security shields across network boundaries.</p>
+                </div>
+
+                <!-- 2x3 Grid of hud-panels -->
+                <div class="features-grid">
+                    <!-- Feature 1 -->
+                    <div class="hud-panel reveal">
+                        <span class="terminal-text" style="position: absolute; top: 16px; right: 16px; font-size: 8px;">[ACTIVE]</span>
+                        <div class="feature-icon">🛡️</div>
+                        <h3 class="feature-title">Real-Time Scanning</h3>
+                        <p class="feature-desc">Every file, every buffer packet swept in real-time to locate malware variants.</p>
+                    </div>
+
+                    <!-- Feature 2 -->
+                    <div class="hud-panel reveal">
+                        <span class="terminal-text" style="position: absolute; top: 16px; right: 16px; font-size: 8px;">[ACTIVE]</span>
+                        <div class="feature-icon">🤖</div>
+                        <h3 class="feature-title">AI Threat Detection</h3>
+                        <p class="feature-desc">Self-training behavior analysis models identify and flag zero-day exploits.</p>
+                    </div>
+
+                    <!-- Feature 3 -->
+                    <div class="hud-panel reveal">
+                        <span class="terminal-text" style="position: absolute; top: 16px; right: 16px; font-size: 8px;">[ACTIVE]</span>
+                        <div class="feature-icon">💀</div>
+                        <h3 class="feature-title">Ransomware Lockdown</h3>
+                        <p class="feature-desc">Instantly lock directory registers the moment anomalous encryption occurs.</p>
+                    </div>
+
+                    <!-- Feature 4 -->
+                    <div class="hud-panel reveal">
+                        <span class="terminal-text" style="position: absolute; top: 16px; right: 16px; font-size: 8px;">[ACTIVE]</span>
+                        <div class="feature-icon">🌐</div>
+                        <h3 class="feature-title">Dark Web Watch</h3>
+                        <p class="feature-desc">Monitors credentials and password stores on major leak indexes.</p>
+                    </div>
+
+                    <!-- Feature 5 -->
+                    <div class="hud-panel reveal">
+                        <span class="terminal-text" style="position: absolute; top: 16px; right: 16px; font-size: 8px;">[ACTIVE]</span>
+                        <div class="feature-icon">🔐</div>
+                        <h3 class="feature-title">Identity Shield</h3>
+                        <p class="feature-desc">Secures session tokens and cookies from browser scraper packages.</p>
+                    </div>
+
+                    <!-- Feature 6 -->
+                    <div class="hud-panel reveal">
+                        <span class="terminal-text" style="position: absolute; top: 16px; right: 16px; font-size: 8px;">[ACTIVE]</span>
+                        <div class="feature-icon">⚡</div>
+                        <h3 class="feature-title">Zero-Lag Engine</h3>
+                        <p class="feature-desc">Minimal local footprint utilizing cloud diagnostics loops under 0.4% CPU.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STREAM DIVIDER -->
+        <div class="grid-divider"><div class="grid-divider-glow"></div></div>
+
+        <!-- ABOUT -->
+        <section id="about" class="section-wrap">
+            <div class="container-hud about-grid">
+                <!-- Left Image inside HUD viewfinder frame -->
+                <div class="about-left reveal">
+                    <div class="hud-viewfinder-wrap">
+                        <div class="viewfinder-corner-tl"></div>
+                        <div class="viewfinder-corner-tr"></div>
+                        <div class="viewfinder-corner-bl"></div>
+                        <div class="viewfinder-corner-br"></div>
+                        
+                        <img src="{{ url_for('static', filename='about.png') }}" class="rounded" style="width: 100%; height: auto; display: block; border-radius: 8px;" alt="Threat Analysis Center" />
+                    </div>
+                </div>
+                
+                <!-- Right details -->
+                <div class="about-right reveal">
+                    <span class="section-eyebrow">// ABOUT DIAGNOSTICS</span>
+                    <h2 class="section-title" style="line-height: 1.15; font-size: 36px;">
+                        Engineered Like a Weapon,<br/>
+                        Runs Like a Whisper
+                    </h2>
+
+                    <!-- Bullets -->
+                    <div class="about-bullets-list">
+                        <!-- Bullet 1 -->
+                        <div class="about-bullet-row">
+                            <span class="bullet-num">[ 01 ]</span>
+                            <div class="bullet-content">
+                                <h4>AES-256 military-grade encryption standard</h4>
+                                <p>Encrypt outbound system data packets from interceptors.</p>
+                            </div>
+                        </div>
+
+                        <!-- Bullet 2 -->
+                        <div class="about-bullet-row">
+                            <span class="bullet-num">[ 02 ]</span>
+                            <div class="bullet-content">
+                                <h4>Scans 1M+ files per second</h4>
+                                <p>Fast scanner technology monitors memory registers instantly.</p>
+                            </div>
+                        </div>
+
+                        <!-- Bullet 3 -->
+                        <div class="about-bullet-row">
+                            <span class="bullet-num">[ 03 ]</span>
+                            <div class="bullet-content">
+                                <h4>Less than 1% CPU footprint</h4>
+                                <p>Heuristics mapping offloads scan cycles to avoid PC lags.</p>
+                            </div>
+                        </div>
+
+                        <!-- Bullet 4 -->
+                        <div class="about-bullet-row">
+                            <span class="bullet-num">[ 04 ]</span>
+                            <div class="bullet-content">
+                                <h4>Full Windows/Mac compatibility node</h4>
+                                <p>Cross-platform integration nodes secure all device groups.</p>
+                            </div>
+                        </div>
+
+                        <!-- Bullet 5 -->
+                        <div class="about-bullet-row">
+                            <span class="bullet-num">[ 05 ]</span>
+                            <div class="bullet-content">
+                                <h4>30-day money-back guarantee</h4>
+                                <p>Direct support node handles refunds within the first month.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STREAM DIVIDER -->
+        <div class="grid-divider"><div class="grid-divider-glow"></div></div>
+
+        <!-- LIVE THREAT FEED & TESTIMONIALS -->
+        <section id="feed" class="section-wrap">
+            <div class="container-hud">
+                
+                <!-- Live threat feed panel -->
+                <div class="threat-feed-container reveal">
+                    <div style="text-align: center; margin-bottom: 32px;">
+                        <span class="section-eyebrow">// LIVE ACTIVITY</span>
+                        <h2 class="section-title" style="font-size: 36px;">Global Threat Activity</h2>
+                        <p style="color: var(--text-dim); font-size: 11px; font-family: 'JetBrains Mono', monospace; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <span class="live-dot"></span> LIVE THREAT RADAR FEED
+                        </p>
+                    </div>
+
+                    <!-- Fake simulated scrolling terminal list -->
+                    <div class="feed-box" id="live-threat-feed">
+                        <div class="feed-header">
+                            <span>TIMESTAMP</span>
+                            <span>SOURCE IP</span>
+                            <span>ATTACK VECTOR</span>
+                            <span>STATUS</span>
+                        </div>
+                        <!-- Rows injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Testimonials -->
+                <div class="testimonials-grid">
+                    <!-- Testimonial 1 -->
+                    <div class="hud-panel reveal">
+                        <div class="stars-row">★★★★★</div>
+                        <p class="testimonial-quote">
+                            "Caught a ransomware variant my last antivirus didn't even recognize. Sealed the folder before I'd even finished reading the alert."
+                        </p>
+                        <div class="testimonial-author">— Priya M., Freelance Designer</div>
+                    </div>
+
+                    <!-- Testimonial 2 -->
+                    <div class="hud-panel reveal">
+                        <div class="stars-row">★★★★★</div>
+                        <p class="testimonial-quote">
+                            "I run a 40-person studio. SecureTechAV is the first security tool nobody on my team complains about."
+                        </p>
+                        <div class="testimonial-author">— Arjun K., Studio Founder</div>
+                    </div>
+
+                    <!-- Testimonial 3 -->
+                    <div class="hud-panel reveal">
+                        <div class="stars-row">★★★★★</div>
+                        <p class="testimonial-quote">
+                            "Switched after a phishing attempt got through my old AV. SecureTechAV flagged the same email type three times since — before I even opened it."
+                        </p>
+                        <div class="testimonial-author">— Rohan D., Finance Analyst</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- STREAM DIVIDER -->
+        <div class="grid-divider"><div class="grid-divider-glow"></div></div>
+
+        <!-- PRICING -->
+        <section id="pricing" class="section-wrap">
+            <div class="container-hud">
+                <div class="section-header reveal">
+                    <span class="section-eyebrow">// PRICING</span>
+                    <h2 class="section-title">Compare Protection Tiers</h2>
+                </div>
+
+                <div class="pricing-grid">
+                    <!-- Free -->
+                    <div class="hud-panel price-card reveal">
+                        <div>
+                            <div class="price-title-row">
+                                <h3 class="price-title">THE APPRENTICE</h3>
+                                <span class="price-tier-tag">TIER_ID: 01</span>
+                            </div>
+                            <div class="price-amount">$0.00 <span>/ lifetime</span></div>
+                            <ul class="price-features">
+                                <li>✓ Basic File Scans</li>
+                                <li>✓ 1 Active Device</li>
+                                <li>✓ Core Database Checks</li>
+                                <li class="line-through text-zinc-650">✗ AI Heuristic Predictor</li>
+                                <li class="line-through text-zinc-650">✗ Ransomware Shield</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <a href="#pricing" class="btn-hud-outline" style="width: 100%; box-sizing: border-box;">Download Now</a>
+                        </div>
+                    </div>
+
+                    <!-- Pro -->
+                    <div class="hud-panel price-card pro-card reveal">
+                        <div>
+                            <div class="pro-badge-wrap">
+                                <span class="pro-badge">MOST DEPLOYED</span>
+                            </div>
+                            <div class="price-title-row">
+                                <h3 class="price-title" style="color: var(--hud-cyan);">THE BLACKSMITH</h3>
+                                <span class="price-tier-tag" style="color: var(--hud-cyan);">TIER_ID: 02</span>
+                            </div>
+                            <div class="price-amount pro-amount">$9.99 <span>/ month</span></div>
+                            <ul class="price-features">
+                                <li>✓ Real-Time AI Monitor</li>
+                                <li>✓ 5 Device License</li>
+                                <li>✓ Zero-Day Sandbox Shield</li>
+                                <li>✓ Dark Web Breach Scans</li>
+                                <li>✓ Anti-Phishing Cloud Filter</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <a href="#pricing" class="btn-hud-primary" style="width: 100%; box-sizing: border-box; shadow: 0 0 20px rgba(34, 211, 238, 0.4);">Start Free Trial</a>
+                        </div>
+                    </div>
+
+                    <!-- Business -->
+                    <div class="hud-panel price-card reveal">
+                        <div>
+                            <div class="price-title-row">
+                                <h3 class="price-title">THE FOUNDRY</h3>
+                                <span class="price-tier-tag">TIER_ID: 03</span>
+                            </div>
+                            <div class="price-amount">$24.99 <span>/ month</span></div>
+                            <ul class="price-features">
+                                <li>✓ Custom SecOps Dashboard</li>
+                                <li>✓ 25 Device Licenses</li>
+                                <li>✓ Complete Network Shields</li>
+                                <li>✓ Dedicate Support Nodes</li>
+                                <li>✓ Remote Terminal Deploy</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <a href="#pricing" class="btn-hud-primary" style="width: 100%; box-sizing: border-box;">Protect Business</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 48px;">
+                    <a href="#pricing" class="btn-hud-ghost">View All Plans &rarr;</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- STREAM DIVIDER -->
+        <div class="grid-divider"><div class="grid-divider-glow"></div></div>
+
+        <!-- CTA SECTION -->
+        <section id="contact" class="section-wrap" style="background-image: radial-gradient(ellipse 80% 60% at center, rgba(34, 211, 238, 0.06), transparent); padding: 80px 0;">
+            <!-- Scan line radar sweep -->
+            <div class="scan-line"></div>
+            
+            <div class="container-hud cta-box reveal">
+                <h2 class="cta-title glow-text">Deploy Your Defense Today</h2>
+                <p class="cta-desc">Every second you wait, new digital threats emerge.</p>
+                
+                <div class="cta-input-group">
+                    <input type="email" placeholder="Enter security email" class="cta-input" />
+                    <button type="button" class="btn-hud-primary">GET PROTECTED</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container-hud footer-grid">
+            <div class="footer-logo-desc">
+                <a href="/" class="logo-wrap">
+                    <img src="{{ url_for('static', filename='just_logo_no_text.png') }}" alt="SecureTechAV Logo" class="h-8 filter invert brightness-200" style="height: 32px;" />
+                    <span class="logo-text" style="font-size: 18px;">SecureTech<span class="text-hudCyan">AV</span></span>
+                </a>
+                <p>Protecting the digital frontier, one device at a time. AI-driven cybersecurity models protecting personal computers, enterprise mainframes, and smart nodes.</p>
+            </div>
+
+            <div class="footer-col">
+                <h4>// Product</h4>
+                <ul>
+                    <li><a href="#features" class="btn-hud-ghost">Features</a></li>
+                    <li><a href="#pricing" class="btn-hud-ghost">Pricing Packs</a></li>
+                    <li><a href="#home" class="btn-hud-ghost">Malware Shield</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>// Company</h4>
+                <ul>
+                    <li><a href="#about" class="btn-hud-ghost">About Us</a></li>
+                    <li><a href="#" class="btn-hud-ghost">Careers</a></li>
+                    <li><a href="#" class="btn-hud-ghost">Press</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>// Support</h4>
+                <ul>
+                    <li><a href="#" class="btn-hud-ghost">Support Node</a></li>
+                    <li><a href="#" class="btn-hud-ghost">Contact Lab</a></li>
+                    <li><a href="#" class="btn-hud-ghost">Alerts Status</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="container-hud footer-bottom">
+            <p>&copy; 2026 SecureTechAV. All systems operational.</p>
+            <div class="footer-bottom-right">
+                <span class="btn-hud-ghost">Privacy Node</span>
+                <span style="color: var(--hud-cyan); font-weight: 700; display: flex; align-items: center;"><span class="live-dot"></span>SYSTEM: RUNNING</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JS SCRIPTS -->
+    <script>
+        // Hamburger Toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const lines = menuBtn.querySelectorAll('span');
+
+        menuBtn.addEventListener('click', () => {
+            const isHidden = mobileMenu.style.display === 'flex';
+            if (!isHidden) {
+                mobileMenu.style.display = 'flex';
+                lines[0].style.transform = 'translateY(7px) rotate(45deg)';
+                lines[1].style.opacity = '0';
+                lines[2].style.transform = 'translateY(-7px) rotate(-45deg)';
+            } else {
+                mobileMenu.style.display = 'none';
+                lines[0].style.transform = 'none';
+                lines[1].style.opacity = '1';
+                lines[2].style.transform = 'none';
+            }
+        });
+
+        // Close mobile dropdown on links click
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.style.display = 'none';
+                lines[0].style.transform = 'none';
+                lines[1].style.opacity = '1';
+                lines[2].style.transform = 'none';
+            });
+        });
+
+        // Scroll Reveal Intersection Observer
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // Stats Counter animation
+        const stats = document.querySelectorAll('.stat-count');
+        const statsObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const target = parseFloat(el.getAttribute('data-target'));
+                    const suffix = el.getAttribute('data-suffix') || '';
+                    const decimals = parseInt(el.getAttribute('data-decimals') || '0');
+                    let current = 0;
+                    const duration = 1500;
+                    const stepTime = 15;
+                    const steps = duration / stepTime;
+                    const increment = target / steps;
+                    
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            el.textContent = target.toLocaleString('en-US') + suffix;
+                            clearInterval(timer);
+                        } else {
+                            el.textContent = Math.floor(current).toLocaleString('en-US') + suffix;
+                        }
+                    }, stepTime);
+                    
+                    observer.unobserve(el);
+                }
+            });
+        }, { threshold: 0.5 });
+        stats.forEach(s => statsObserver.observe(s));
+
+        // Live Simulated Threat Feed scrolling/tick updates
+        const threatFeed = document.getElementById('live-threat-feed');
+        const locations = ['US_EAST_NODE', 'DE_MUNICH_MAIN', 'IN_MUMBAI_GATE', 'UK_LONDON_SYS', 'JP_TOKYO_CENTER', 'SG_EDGE_VAULT'];
+        const attackVectors = ['SQL Injection Payload', 'Trojan.Win32.Generic', 'Buffer Overflow exploit', 'Credential Scraper payload', 'Anomalous SSH connection', 'Unauthorized API signature'];
+
+        function addThreatFeedEntry() {
+            const timeStr = new Date().toLocaleTimeString('en-US', { hour12: false });
+            const randomIP = `192.168.${Math.floor(Math.random() * 254) + 1}.${Math.floor(Math.random() * 254) + 1}`;
+            const loc = locations[Math.floor(Math.random() * locations.length)];
+            const vector = attackVectors[Math.floor(Math.random() * attackVectors.length)];
+            
+            const newRow = document.createElement('div');
+            newRow.className = 'feed-row';
+            newRow.style.opacity = '0';
+            newRow.innerHTML = `
+                <span class="feed-time">${timeStr}</span>
+                <span>${randomIP} (${loc})</span>
+                <span class="feed-vector">${vector}</span>
+                <span class="feed-badge">BLOCKED</span>
+            `;
+            
+            // Append and animate in
+            threatFeed.appendChild(newRow);
+            setTimeout(() => {
+                newRow.style.opacity = '1';
+            }, 50);
+
+            // Limit row count inside scrolling view
+            if (threatFeed.children.length > 7) {
+                const firstRow = threatFeed.children[1]; // index 0 is header
+                firstRow.style.opacity = '0';
+                setTimeout(() => {
+                    firstRow.remove();
+                }, 500);
+            }
+        }
+
+        // Initialize first feed rows
+        for (let i = 0; i < 4; i++) {
+            addThreatFeedEntry();
+        }
+
+        // Loop feed updates
+        setInterval(addThreatFeedEntry, 3000);
+
+        // 2D Grid Canvas Background
+        const canvas = document.getElementById('grid-canvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const spacing = 45;
+        let offset = 0;
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function drawGrid() {
+            ctx.clearRect(0, 0, w, h);
+            ctx.strokeStyle = 'rgba(255, 56, 56, 0.08)'; // Increased opacity red grid line
+            ctx.lineWidth = 1;
+            
+            for (let x = offset; x < w; x += spacing) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, h);
+                ctx.stroke();
+            }
+            
+            for (let y = offset; y < h; y += spacing) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+                ctx.stroke();
+            }
+            
+            if (!prefersReduced) {
+                offset = (offset + 0.15) % spacing;
+            }
+        }
+
+        // Circuit node particles
+        const nodes = [];
+        const nodeCount = 45;
+        for (let i = 0; i < nodeCount; i++) {
+            nodes.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.3,
+                size: Math.random() * 2 + 1,
+                alpha: Math.random() * 0.4 + 0.2 // Increased alpha for high contrast visibility
+            });
+        }
+
+        function updateNodes() {
+            nodes.forEach(node => {
+                if (!prefersReduced) {
+                    node.x += node.vx;
+                    node.y += node.vy;
+                    if (node.x < 0 || node.x > w) node.vx *= -1;
+                    if (node.y < 0 || node.y > h) node.vy *= -1;
+                }
+                
+                ctx.globalAlpha = node.alpha;
+                ctx.fillStyle = '#FF3838';
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                nodes.forEach(other => {
+                    const dist = Math.hypot(node.x - other.x, node.y - other.y);
+                    if (dist < 120) {
+                        ctx.strokeStyle = 'rgba(185, 28, 28, 0.18)'; // Red connection line
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(node.x, node.y);
+                        ctx.lineTo(other.x, other.y);
+                        ctx.stroke();
+                    }
+                });
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        function animate() {
+            drawGrid();
+            updateNodes();
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

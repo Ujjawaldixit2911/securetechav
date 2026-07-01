@@ -1,0 +1,2601 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+
+    <!-- ══ PRIMARY SEO ══ -->
+    <title>SecureTechAV — Autonomous Edge Security & API Shield Grid</title>
+    <meta name="description" content="SecureTechAV provides continuous zero-trust endpoint defense, runtime API shielding, and asynchronous edge threat diagnostics. Secure your infrastructure in seconds." />
+    <link rel="icon" href="{{ url_for('static', filename='image-5@2x.webp') }}" />
+
+    <!-- Google Fonts: Inter for premium clean UI, JetBrains Mono for system logs -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Green & Bluish-Black CSS System -->
+    <style>
+        :root {
+            /* Color System */
+            --bg-base: #030712;      /* Deepest Black */
+            --bg-surface: #0a0f1d;   /* Deep Slate/Bluish Black */
+            --bg-card: #0f172a;      /* Dark Slate Blue */
+            --accent: #10b981;      /* Vibrant Emerald Green (Default) */
+            --accent-hover: #059669;/* Darker Green */
+            --accent-glow: rgba(16, 185, 129, 0.15);
+            --border-muted: rgba(255, 255, 255, 0.05);
+            --border-active: rgba(16, 185, 129, 0.25);
+            
+            /* Text Hierarchy */
+            --text-bright: #f8fafc;
+            --text-soft: #94a3b8;
+            --text-muted: #64748b;
+            
+            /* Typography */
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', SFMono-Regular, Consolas, monospace;
+            
+            /* Elevation & Blurs */
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 12px 24px -4px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 20px 40px -8px rgba(0, 0, 0, 0.6), 0 0 50px rgba(16, 185, 129, 0.02);
+            --blur-glass: blur(20px) saturate(190%);
+        }
+
+        html {
+            scroll-behavior: smooth;
+            background-color: var(--bg-base);
+        }
+
+        body {
+            background-color: transparent; /* Transparent so the fixed canvas background renders through */
+            color: var(--text-soft);
+            font-family: var(--font-sans);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            letter-spacing: -0.019em;
+            line-height: 1.6;
+        }
+
+        /* ══ BACKGROUND CANVAS & BLOBS ══ */
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: -10;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            background-color: var(--bg-base);
+        }
+
+        .page-bg-system {
+            position: fixed;
+            inset: 0;
+            z-index: -9; /* Just above canvas, under text elements */
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .glow-blob {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(140px);
+            opacity: 0.18;
+            mix-blend-mode: screen;
+            transition: all 0.5s ease;
+        }
+
+        .blob-1 {
+            width: 55vw;
+            height: 55vw;
+            background: radial-gradient(circle, var(--accent) 0%, rgba(16, 185, 129, 0) 70%);
+            top: -15%;
+            right: -10%;
+            animation: drift-blob-1 25s ease-in-out infinite alternate;
+        }
+
+        .blob-2 {
+            width: 48vw;
+            height: 48vw;
+            background: radial-gradient(circle, var(--accent) 0%, rgba(16, 185, 129, 0) 70%);
+            bottom: -5%;
+            left: -12%;
+            animation: drift-blob-2 22s ease-in-out infinite alternate;
+            opacity: 0.12;
+        }
+
+        @keyframes drift-blob-1 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-8%, 5%) scale(1.08); }
+        }
+        @keyframes drift-blob-2 {
+            0% { transform: translate(0, 0) scale(1.05); }
+            100% { transform: translate(6%, -8%) scale(0.95); }
+        }
+
+        /* ══ FLOATING CONTROLS STACK (Exactly 5cm Wide Buttons) ══ */
+        .controls-stack {
+            position: fixed;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1000;
+        }
+
+        .bg-switcher-btn, .theme-switcher-btn {
+            width: 5cm; /* Exactly 5cm Wide */
+            height: 52px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: var(--blur-glass);
+            -webkit-backdrop-filter: var(--blur-glass);
+            border: 1px solid var(--border-active);
+            border-radius: 10px;
+            color: var(--accent);
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px var(--accent-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            box-sizing: border-box;
+        }
+
+        .bg-switcher-btn:hover, .theme-switcher-btn:hover {
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 25px var(--accent);
+            transform: scale(1.02);
+            color: var(--text-bright);
+        }
+
+        .bg-switcher-btn:active, .theme-switcher-btn:active {
+            transform: scale(0.98);
+        }
+
+        .switcher-indicator-dot, .theme-indicator-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent);
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0% { transform: scale(0.8); opacity: 0.6; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0.6; }
+        }
+
+        /* ══ LAYOUT CONTAINERS ══ */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-left: 24px;
+            padding-right: 24px;
+            box-sizing: border-box;
+        }
+
+        .section-padding {
+            padding: 110px 0;
+            position: relative;
+        }
+
+        /* ══ STICKY NAVBAR ══ */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(3, 7, 18, 0.8);
+            backdrop-filter: var(--blur-glass);
+            -webkit-backdrop-filter: var(--blur-glass);
+            border-bottom: 1px solid var(--border-muted);
+            height: 80px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        header.scrolled {
+            height: 70px;
+            background: rgba(3, 7, 18, 0.95);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .nav-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            height: 32px;
+            width: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .logo-wrap:hover .logo-img {
+            transform: scale(1.08) rotate(-5deg);
+        }
+
+        .logo-text {
+            font-size: 19px;
+            font-weight: 800;
+            color: var(--text-bright);
+            letter-spacing: -0.03em;
+        }
+
+        .logo-text span.accent-span {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .logo-status-tag {
+            font-family: var(--font-mono);
+            font-size: 8px;
+            font-weight: 700;
+            color: var(--accent);
+            background: rgba(16, 185, 129, 0.06);
+            border: 1px solid var(--border-active);
+            padding: 2px 8px;
+            border-radius: 99px;
+            margin-left: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-status-tag::before {
+            content: '';
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--accent);
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        header nav {
+            display: flex;
+            gap: 36px;
+        }
+
+        header nav a {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-soft);
+            text-decoration: none;
+            transition: color 0.2s ease;
+            position: relative;
+            padding: 6px 0;
+        }
+
+        header nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--accent);
+            transition: width 0.22s ease;
+        }
+
+        header nav a:hover {
+            color: var(--text-bright);
+        }
+
+        header nav a:hover::after {
+            width: 100%;
+        }
+
+        .nav-btn-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Buttons Definition */
+        .btn {
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            font-family: var(--font-sans);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-bright);
+            border: 1px solid var(--border-muted);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: #030712;
+            border: 1px solid transparent;
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px var(--accent);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-soft);
+            border: none;
+        }
+
+        .btn-ghost:hover {
+            color: var(--text-bright);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Mobile Hamburger */
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            flex-direction: column;
+            gap: 6px;
+            padding: 8px;
+        }
+
+        .hamburger span {
+            width: 20px;
+            height: 2px;
+            background-color: var(--text-bright);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #mobile-menu {
+            display: none;
+            position: fixed;
+            inset: 0;
+            top: 0;
+            background: rgba(3, 7, 18, 0.99);
+            backdrop-filter: blur(25px);
+            padding: 120px 40px 40px;
+            flex-direction: column;
+            gap: 24px;
+            z-index: 99;
+            align-items: center;
+        }
+
+        #mobile-menu a {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-soft);
+            text-decoration: none;
+        }
+
+        #mobile-menu a:hover {
+            color: var(--text-bright);
+        }
+
+        /* ══ HERO SECTION ══ */
+        .hero-section {
+            display: flex;
+            align-items: center;
+            min-height: calc(100vh - 80px);
+            padding-top: 130px;
+            padding-bottom: 90px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 60px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .hero-left {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-tag {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-active);
+            padding: 6px 14px;
+            border-radius: 99px;
+            margin-bottom: 24px;
+        }
+
+        .hero-title {
+            font-size: 58px;
+            font-weight: 800;
+            line-height: 1.1;
+            color: var(--text-bright);
+            margin: 0 0 24px 0;
+            letter-spacing: -0.035em;
+        }
+
+        .hero-title span.green-text {
+            background: linear-gradient(135deg, var(--accent) 0%, #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .hero-desc {
+            font-size: 18px;
+            color: var(--text-soft);
+            line-height: 1.6;
+            max-width: 530px;
+            margin: 0 0 36px 0;
+            font-weight: 400;
+        }
+
+        .hero-btn-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 50px;
+        }
+
+        /* Device mockup container */
+        .hero-right {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .device-shadow-glow {
+            position: absolute;
+            width: 85%;
+            height: 85%;
+            background: var(--accent-glow);
+            filter: blur(120px);
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        /* Premium Browser Mockup */
+        .browser-mockup {
+            width: 100%;
+            max-width: 480px;
+            background: #090d16;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .browser-mockup:hover {
+            transform: translateY(-6px) scale(1.015);
+            border-color: var(--border-active);
+            box-shadow: 0 25px 50px -10px rgba(0, 0, 0, 0.7), 0 0 40px var(--accent-glow);
+        }
+
+        .browser-topbar {
+            height: 38px;
+            background: rgba(11, 16, 28, 0.85);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            justify-content: space-between;
+        }
+
+        .browser-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .browser-address {
+            background: rgba(3, 7, 18, 0.5);
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text-muted);
+            padding: 4px 20px;
+            width: 60%;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .browser-content {
+            background: #070a13;
+            padding: 0;
+            margin: 0;
+            display: block;
+        }
+
+        .browser-content img {
+            width: 100%;
+            height: auto;
+            display: block;
+            opacity: 0.93;
+            transition: opacity 0.3s;
+        }
+
+        .browser-mockup:hover img {
+            opacity: 1;
+        }
+
+        /* ══ STATS SECTION ══ */
+        .stats-wrapper {
+            border-top: 1px solid var(--border-muted);
+            border-bottom: 1px solid var(--border-muted);
+            background: rgba(10, 15, 29, 0.4);
+            position: relative;
+            z-index: 2;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            text-align: center;
+        }
+
+        .stat-card {
+            padding: 45px 24px;
+            position: relative;
+            transition: background 0.25s ease;
+        }
+
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.005);
+        }
+
+        .stat-card:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 25%;
+            height: 50%;
+            width: 1px;
+            background-color: var(--border-muted);
+        }
+
+        .stat-num {
+            font-family: var(--font-mono);
+            font-size: 44px;
+            font-weight: 700;
+            color: var(--text-bright);
+            line-height: 1;
+            margin-bottom: 10px;
+            letter-spacing: -0.03em;
+        }
+
+        .stat-num.accent-num {
+            color: var(--accent);
+            text-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* ══ SERVICES / FEATURES SECTION ══ */
+        .section-header {
+            text-align: center;
+            max-width: 680px;
+            margin: 0 auto 72px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .section-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: inline-block;
+            margin-bottom: 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-active);
+            padding: 4px 12px;
+            border-radius: 99px;
+        }
+
+        .section-title {
+            font-size: 38px;
+            font-weight: 800;
+            color: var(--text-bright);
+            margin: 0 0 18px 0;
+            letter-spacing: -0.025em;
+        }
+
+        .section-desc {
+            font-size: 16px;
+            color: var(--text-soft);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .service-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-muted);
+            border-radius: 16px;
+            padding: 36px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        /* Radial cursor shine */
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(800px circle at var(--x, 0px) var(--y, 0px), var(--accent-glow), transparent 40%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .service-card:hover::before {
+            opacity: 1;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--border-active);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+        }
+
+        .service-icon-box {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-soft);
+            margin-bottom: 24px;
+            transition: all 0.25s ease;
+        }
+
+        .service-card:hover .service-icon-box {
+            background: var(--accent-glow);
+            border-color: var(--border-active);
+            color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .service-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin: 0 0 12px 0;
+            letter-spacing: -0.01em;
+        }
+
+        .service-desc {
+            font-size: 14px;
+            color: var(--text-soft);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* ══ DIAGNOSTICS SECTION (ABOUT) ══ */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 0.95fr 1.05fr;
+            gap: 80px;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .about-left {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        .about-bullets-list {
+            margin-top: 36px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .about-bullet-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 18px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-muted);
+        }
+
+        .about-bullet-row:last-child {
+            border-bottom: none;
+        }
+
+        .bullet-icon-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            background: var(--accent-glow);
+            color: var(--accent);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+            border: 1px solid var(--border-active);
+        }
+
+        .bullet-content h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin: 0 0 6px 0;
+        }
+
+        .bullet-content p {
+            font-size: 14px;
+            color: var(--text-soft);
+            margin: 0;
+        }
+
+        /* ══ LIVE AUDITS (THREAT FEED) ══ */
+        .threat-feed-container {
+            max-width: 850px;
+            margin: 0 auto 60px auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .feed-box {
+            background: #05070e;
+            border: 1px solid var(--border-muted);
+            border-radius: 12px;
+            padding: 24px;
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        .feed-header {
+            display: grid;
+            grid-template-columns: 1.1fr 1.6fr 2.1fr 1fr;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .feed-rows-container {
+            max-height: 230px;
+            overflow-y: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feed-row {
+            display: grid;
+            grid-template-columns: 1.1fr 1.6fr 2.1fr 1fr;
+            align-items: center;
+            padding: 9px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            transition: all 0.4s ease;
+        }
+
+        .feed-time {
+            color: var(--text-muted);
+        }
+
+        .feed-ip {
+            color: var(--text-soft);
+        }
+
+        .feed-vector {
+            color: var(--text-bright);
+            font-weight: 500;
+        }
+
+        .feed-badge {
+            justify-self: start;
+            color: var(--accent);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-active);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* ══ TESTIMONIALS ══ */
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .testimonial-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-muted);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .testimonial-card:hover {
+            border-color: var(--border-active);
+            transform: translateY(-2px);
+        }
+
+        .stars-row {
+            color: var(--accent);
+            font-size: 13px;
+            margin-bottom: 18px;
+            letter-spacing: 2px;
+        }
+
+        .testimonial-quote {
+            font-size: 14.5px;
+            line-height: 1.65;
+            color: var(--text-soft);
+            margin: 0 0 24px 0;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .author-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            border: 1px solid var(--border-active);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 11px;
+        }
+
+        .author-info h5 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-bright);
+        }
+
+        .author-info p {
+            margin: 2px 0 0 0;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* ══ PRICING SECTION ══ */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            max-width: 1050px;
+            margin: 0 auto;
+            align-items: stretch;
+            position: relative;
+            z-index: 2;
+        }
+
+        .price-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-muted);
+            border-radius: 20px;
+            padding: 44px 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .price-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Accent Highlighted Pro Card */
+        .price-card.pro-card {
+            border-color: var(--border-active);
+            box-shadow: var(--shadow-md), 0 0 40px var(--accent-glow);
+            background: linear-gradient(180deg, #101726 0%, #0a0f1d 100%);
+        }
+
+        .price-card.pro-card::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 20px;
+            padding: 1px;
+            background: linear-gradient(180deg, var(--accent) 0%, transparent 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .pro-badge-wrap {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+        }
+
+        .pro-badge {
+            background-color: var(--accent);
+            color: #030712;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 99px;
+            letter-spacing: 0.5px;
+        }
+
+        .price-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin: 0 0 16px 0;
+        }
+
+        .price-amount {
+            font-family: var(--font-mono);
+            font-size: 38px;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+
+        .price-amount span {
+            font-family: var(--font-sans);
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-left: 2px;
+        }
+
+        .price-desc {
+            font-size: 13px;
+            color: var(--text-soft);
+            margin: 0 0 32px 0;
+        }
+
+        .price-features {
+            list-style: none;
+            padding: 24px 0 0;
+            margin: 0 0 40px 0;
+            border-top: 1px solid var(--border-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .price-features li {
+            font-size: 14px;
+            color: var(--text-soft);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .price-features li svg {
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .price-features li.disabled {
+            color: var(--text-muted);
+            text-decoration: line-through;
+            opacity: 0.55;
+        }
+
+        .price-features li.disabled svg {
+            color: var(--text-muted);
+        }
+
+        /* ══ CTA BANNER SECTION ══ */
+        .cta-section-wrapper {
+            position: relative;
+            z-index: 2;
+        }
+
+        .cta-box {
+            background: linear-gradient(135deg, #090d16 0%, #04060d 100%);
+            border: 1px solid var(--border-muted);
+            border-radius: 24px;
+            padding: 80px 48px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 320px;
+            height: 100px;
+            background: var(--accent-glow);
+            filter: blur(60px);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .cta-title {
+            font-size: 40px;
+            font-weight: 800;
+            color: var(--text-bright);
+            margin: 0 0 16px 0;
+            letter-spacing: -0.02em;
+        }
+
+        .cta-desc {
+            font-size: 16px;
+            color: var(--text-soft);
+            max-width: 530px;
+            margin: 0 auto 36px;
+        }
+
+        .cta-form {
+            display: flex;
+            gap: 12px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .cta-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-muted);
+            color: var(--text-bright);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            outline: none;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        .cta-input:focus {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        /* ══ FOOTER ══ */
+        footer {
+            background-color: #030408;
+            border-top: 1px solid var(--border-muted);
+            padding: 80px 0 40px 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+
+        .footer-logo-desc p {
+            font-size: 14px;
+            color: var(--text-soft);
+            line-height: 1.6;
+            max-width: 320px;
+            margin: 20px 0 0 0;
+        }
+
+        .footer-col h4 {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-bright);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 0 0 24px 0;
+        }
+
+        .footer-col ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .footer-col ul a {
+            font-size: 14px;
+            color: var(--text-soft);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-col ul a:hover {
+            color: var(--text-bright);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .footer-bottom-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .footer-bottom-right a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-bottom-right a:hover {
+            color: var(--text-bright);
+        }
+
+        .system-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .system-status-indicator::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--accent);
+        }
+
+        /* ══ OBSERVER REVEAL ══ */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ══ RESPONSIVE ══ */
+        @media (max-width: 1024px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                gap: 60px;
+                text-align: center;
+            }
+
+            .hero-desc {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-btn-row {
+                justify-content: center;
+            }
+
+            .services-grid, .testimonials-grid, .pricing-grid, .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+                gap: 60px;
+            }
+
+            .about-left {
+                order: 2;
+            }
+
+            .about-right {
+                order: 1;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card:not(:last-child)::after {
+                display: none;
+            }
+
+            .stat-card {
+                border-bottom: 1px solid var(--border-muted);
+            }
+
+            .stat-card:last-child {
+                border-bottom: none;
+            }
+
+            header nav, .nav-btn-group {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 38px;
+            }
+
+            .hero-btn-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .cta-form {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .footer-bottom-right {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Fixed full-page background rendering canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Floating Control Stack on the right (exactly 5cm wide buttons) -->
+    <div class="controls-stack">
+        <button class="theme-switcher-btn" id="theme-switcher">
+            <span class="theme-indicator-dot"></span>
+            <span id="theme-text">Theme: Green</span>
+        </button>
+        <button class="bg-switcher-btn" id="bg-switcher">
+            <span class="switcher-indicator-dot"></span>
+            <span id="switcher-text">BG: Neural Mesh</span>
+        </button>
+    </div>
+
+    <!-- Radial Background glows -->
+    <div class="page-bg-system">
+        <div class="glow-blob blob-1"></div>
+        <div class="glow-blob blob-2"></div>
+    </div>
+
+    <!-- HEADER/NAVBAR -->
+    <header id="main-header">
+        <div class="container nav-inner">
+            <a href="/" class="logo-wrap">
+                <img src="{{ url_for('static', filename='just_logo_no_text.png') }}" alt="SecureTechAV Logo" class="logo-img filter brightness-200" />
+                <span class="logo-text">
+                    SecureTech<span class="accent-span">AV</span>
+                    <span class="logo-status-tag">SHIELD GRID ON</span>
+                </span>
+            </a>
+            
+            <nav>
+                <a href="#home">Home</a>
+                <a href="#features">Features</a>
+                <a href="#about">About</a>
+                <a href="#feed">Audits</a>
+                <a href="#pricing">Pricing</a>
+            </nav>
+
+            <div class="nav-btn-group">
+                <button class="btn btn-ghost">[ Log In ]</button>
+                <a href="#pricing" class="btn btn-primary btn-sm">Deploy Shield</a>
+            </div>
+
+            <!-- Hamburger Button -->
+            <button id="menu-btn" class="hamburger" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Dropdown Menu -->
+    <div id="mobile-menu">
+        <a href="#home" class="mobile-link">Home</a>
+        <a href="#features" class="mobile-link">Features</a>
+        <a href="#about" class="mobile-link">About</a>
+        <a href="#feed" class="mobile-link">Audits</a>
+        <a href="#pricing" class="mobile-link">Pricing</a>
+        <a href="#pricing" class="btn btn-primary mt-4 mobile-link" style="width: 100%;">Deploy Shield</a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        
+        <!-- HERO SECTION -->
+        <section id="home" class="hero-section">
+            <div class="container hero-grid">
+                <!-- Copywriting details -->
+                <div class="hero-left reveal">
+                    <div class="hero-tag">
+                        <span class="live-dot"></span> Next-Gen Endpoint Shield
+                    </div>
+                    
+                    <h1 class="hero-title">
+                        Autonomous Threat
+                        <span class="green-text">Prevention Grid</span>
+                    </h1>
+                    
+                    <p class="hero-desc">
+                        Stop ransomware, malicious binaries, and credential theft before execution. SecureTechAV utilizes asynchronous edge diagnostics to isolate system exploits in under 15 milliseconds.
+                    </p>
+                    
+                    <div class="hero-btn-row">
+                        <a href="#pricing" class="btn btn-primary">Deploy Free Shield</a>
+                        <a href="#features" class="btn btn-outline">Explore Developer API</a>
+                    </div>
+                </div>
+
+                <!-- Custom Dashboard Image inside browser mockup -->
+                <div class="hero-right reveal">
+                    <div class="device-shadow-glow"></div>
+                    
+                    <!-- Mockup Window -->
+                    <div class="browser-mockup">
+                        <div class="browser-topbar">
+                            <div class="browser-controls">
+                                <span class="browser-dot dot-red"></span>
+                                <span class="browser-dot dot-yellow"></span>
+                                <span class="browser-dot dot-green"></span>
+                            </div>
+                            <div class="browser-address">console.securetechav.com/telemetry</div>
+                            <div style="width: 32px;"></div>
+                        </div>
+                        <div class="browser-content">
+                            <img src="{{ url_for('static', filename='security_dashboard_preview.png') }}" alt="SecureTechAV SaaS Dashboard console" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STATS BLOCK -->
+        <section class="stats-wrapper">
+            <div class="container stats-grid">
+                <div class="stat-card">
+                    <div class="stat-num accent-num stat-count" id="threats-counter" data-target="1409218495" data-decimals="0" data-suffix="">0</div>
+                    <div class="stat-label">Requests Analyzed Today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">&lt; 12ms</div>
+                    <div class="stat-label">Diagnostic Overhead Latency</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">99.999%</div>
+                    <div class="stat-label">Threat Mitigation Accuracy</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SERVICES / SOLUTIONS SECTION -->
+        <section id="features" class="section-padding">
+            <div class="container">
+                <div class="section-header reveal">
+                    <span class="section-eyebrow">Zero-Trust Modules</span>
+                    <h2 class="section-title">Comprehensive Runtime Protection</h2>
+                    <p class="section-desc">Securing endpoints, applications, and networks with sandboxed edge audits and automated firewall lockdowns.</p>
+                </div>
+
+                <div class="services-grid">
+                    <!-- Solution 1 -->
+                    <div class="service-card reveal">
+                        <div class="service-icon-box">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <h3 class="service-title">Continuous Verification</h3>
+                        <p class="service-desc">Every system call and API transaction is cryptographically analyzed against environment templates before execution permission.</p>
+                    </div>
+
+                    <!-- Solution 2 -->
+                    <div class="service-card reveal">
+                        <div class="service-icon-box">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                        </div>
+                        <h3 class="service-title">Neural Behavioral Modeling</h3>
+                        <p class="service-desc">Edge neural models analyze processes, spotting fileless execution loops and injection patterns legacy scanners fail to intercept.</p>
+                    </div>
+
+                    <!-- Solution 3 -->
+                    <div class="service-card reveal">
+                        <div class="service-icon-box">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </div>
+                        <h3 class="service-title">Block-Level Kill Switch</h3>
+                        <p class="service-desc">Terminates anomalous file access immediately at the disk register level, neutralizing ransomware threads during initial file accesses.</p>
+                    </div>
+
+                    <!-- Solution 4 -->
+                    <div class="service-card reveal">
+                        <div class="service-icon-box">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                        </div>
+                        <h3 class="service-title">Credential Leak Sentinel</h3>
+                        <p class="service-desc">Continuous monitoring scans public indexes, dump repositories, and leaked developer spaces to flag compromised credentials within 2 minutes.</p>
+                    </div>
+
+                    <!-- Solution 5 -->
+                    <div class="service-card reveal">
+                        <div class="service-icon-box">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <h3 class="service-title">Hardware-Bound Token Shield</h3>
+                        <p class="service-desc">Encrypts and binds session tokens to local hardware identifiers, preventing attackers from hijacking session state cookies.</p>
+                    </div>
+
+                    <!-- Solution 6 -->
+                    <div class="service-card reveal">
+                        <div class="service-icon-box">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        </div>
+                        <h3 class="service-title">Asynchronous Edge Compute</h3>
+                        <p class="service-desc">All computational load is offloaded to our nearest edge gateway network, ensuring absolute zero latency degradation on endpoints.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DIAGNOSTICS / ABOUT SECTION -->
+        <section id="about" class="section-padding" style="background: rgba(10, 15, 29, 0.3);">
+            <div class="container about-grid">
+                <!-- Threat Map image inside browser mockup -->
+                <div class="about-left reveal">
+                    <div class="browser-mockup">
+                        <div class="browser-topbar">
+                            <div class="browser-controls">
+                                <span class="browser-dot dot-red"></span>
+                                <span class="browser-dot dot-yellow"></span>
+                                <span class="browser-dot dot-green"></span>
+                            </div>
+                            <div class="browser-address">console.securetechav.com/network-map</div>
+                            <div style="width: 32px;"></div>
+                        </div>
+                        <div class="browser-content">
+                            <img src="{{ url_for('static', filename='network_threat_map.png') }}" alt="Network Threat Map node console" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right list details -->
+                <div class="about-right reveal">
+                    <span class="section-eyebrow">Enterprise Infrastructure</span>
+                    <h2 class="section-title">Designed for Modern High-Performance Stacks</h2>
+                    <p class="section-desc">Traditional endpoint security slows down developer workstations and creates latency. SecureTechAV integrates silently into the gateway layer.</p>
+
+                    <div class="about-bullets-list">
+                        <!-- Bullet 1 -->
+                        <div class="about-bullet-row">
+                            <span class="bullet-icon-box">01</span>
+                            <div class="bullet-content">
+                                <h4>Single-Command Daemon Install</h4>
+                                <p>Secures macOS, Linux nodes, or Windows systems with a single-line shell installation command.</p>
+                            </div>
+                        </div>
+
+                        <!-- Bullet 2 -->
+                        <div class="about-bullet-row">
+                            <span class="bullet-icon-box">02</span>
+                            <div class="bullet-content">
+                                <h4>Sandboxed Isolation Vault</h4>
+                                <p>Processes suspected to containing payloads are immediately mirrored into a sandboxed edge virtual machine to dissect behaviors.</p>
+                            </div>
+                        </div>
+
+                        <!-- Bullet 3 -->
+                        <div class="about-bullet-row">
+                            <span class="bullet-icon-box">03</span>
+                            <div class="bullet-content">
+                                <h4>Hardware Attestation Checks</h4>
+                                <p>Validates logins using secure hardware chips (TPM/Secure Enclave) to lock out unauthorized actors using stolen passwords.</p>
+                            </div>
+                        </div>
+
+                        <!-- Bullet 4 -->
+                        <div class="about-bullet-row">
+                            <span class="bullet-icon-box">04</span>
+                            <div class="bullet-content">
+                                <h4>Unified Infrastructure Console</h4>
+                                <p>Aggregates host diagnostics, API gateways, database logs, and user endpoint states into a single centralized console dashboard.</p>
+                            </div>
+                        </div>
+
+                        <!-- Bullet 5 -->
+                        <div class="about-bullet-row">
+                            <span class="bullet-icon-box">05</span>
+                            <div class="bullet-content">
+                                <h4>SOC2 & ISO Compliant Reporting</h4>
+                                <p>Generate audit-ready documentation and logs mapping zero-trust configurations to standard compliance templates.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LIVE AUDITS / logs -->
+        <section id="feed" class="section-padding">
+            <div class="container">
+                <div class="threat-feed-container reveal">
+                    <div style="text-align: center; margin-bottom: 40px;">
+                        <span class="section-eyebrow">Active Telemetry Logs</span>
+                        <h2 class="section-title">Live Edge Event Stream</h2>
+                        <p class="section-desc">Real-time audit log of blocked exploits and request audits processed across our nearest edge nodes.</p>
+                    </div>
+
+                    <div class="feed-box">
+                        <div class="feed-header">
+                            <span>TIMESTAMP</span>
+                            <span>ENDPOINT / SOURCE IP</span>
+                            <span>SIGNATURE</span>
+                            <span>ACTION TAKEN</span>
+                        </div>
+                        <div class="feed-rows-container" id="live-threat-feed">
+                            <!-- Dynamically updated -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testimonials -->
+                <div class="testimonials-grid">
+                    <!-- Card 1 -->
+                    <div class="testimonial-card reveal">
+                        <div>
+                            <div class="stars-row">★★★★★</div>
+                            <p class="testimonial-quote">
+                                "We migrated our fintech databases to SecureTechAV. The memory block-level lockdown feature blocked a custom API exploit attempt on our main billing server within 15 milliseconds."
+                            </p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">ST</div>
+                            <div class="author-info">
+                                <h5>Sarah T.</h5>
+                                <p>VP of Security, FinFlow</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="testimonial-card reveal">
+                        <div>
+                            <div class="stars-row">★★★★★</div>
+                            <p class="testimonial-quote">
+                                "Unlike legacy enterprise antivirus softwares, SecureTechAV runs silently on developers' laptops without slowing down Docker containers or workspace compilation loops."
+                            </p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">ME</div>
+                            <div class="author-info">
+                                <h5>Mark E.</h5>
+                                <p>CIO, CloudScale</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="testimonial-card reveal">
+                        <div>
+                            <div class="stars-row">★★★★★</div>
+                            <p class="testimonial-quote">
+                                "The leakage sentinel caught a leaked developer credentials token on a public forum within minutes, alerting us before any network compromise occurred."
+                            </p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">EG</div>
+                            <div class="author-info">
+                                <h5>Elena G.</h5>
+                                <p>Lead DevOps Architect</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRICING SECTION -->
+        <section id="pricing" class="section-padding" style="background: rgba(10, 15, 29, 0.3);">
+            <div class="container">
+                <div class="section-header reveal">
+                    <span class="section-eyebrow">Zero-Trust Subscriptions</span>
+                    <h2 class="section-title">Transparent, Scale-Based Plans</h2>
+                    <p class="section-desc">Protect individual developers, high-growth engineering teams, and enterprise hybrid grids.</p>
+                </div>
+
+                <div class="pricing-grid">
+                    <!-- Pack 1 -->
+                    <div class="price-card reveal">
+                        <div>
+                            <div class="price-title">Developer Shield</div>
+                            <div class="price-amount">$0.00<span> / lifetime</span></div>
+                            <p class="price-desc">Essential edge protection and telemetry logs for individual workspaces.</p>
+                            <ul class="price-features">
+                                <li>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    1 Active Host node
+                                </li>
+                                <li>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Basic File Scans
+                                </li>
+                                <li>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Telemetry Log API
+                                </li>
+                                <li class="disabled">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                    Neural Threat Engine
+                                </li>
+                                <li class="disabled">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                    Ransomware Kill Switch
+                                </li>
+                            </ul>
+                        </div>
+                        <a href="#pricing" class="btn btn-outline" style="width: 100%;">Install Daemon</a>
+                    </div>
+
+                    <!-- Pack 2 (Pro highlighted) -->
+                    <div class="price-card pro-card reveal">
+                        <div class="pro-badge-wrap">
+                            <span class="pro-badge">RECOMMENDED</span>
+                        </div>
+                        <div>
+                            <div class="price-title" style="color: var(--accent);">Team Command</div>
+                            <div class="price-amount pro-amount">$19.00<span> / month</span></div>
+                            <p class="price-desc">Full behavior modeling security layers for growing teams and hosts.</p>
+                            <ul class="price-features">
+                                <li>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Up to 10 Host nodes
+                                </li>
+                                <li>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Neural Behavioral Engine
+                                </li>
+                                <li>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Ransomware Kill Switch
+                                </li>
+                                <li>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Identity attestation locks
+                                </li>
+                                <li>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Email & Slack Alerts
+                                </li>
+                            </ul>
+                        </div>
+                        <a href="#pricing" class="btn btn-primary" style="width: 100%;">Start 14-Day Trial</a>
+                    </div>
+
+                    <!-- Pack 3 -->
+                    <div class="price-card reveal">
+                        <div>
+                            <div class="price-title">Enterprise Grid</div>
+                            <div class="price-amount">$49.00<span> / month</span></div>
+                            <p class="price-desc">Scale network-wide identity attestation for high volume clusters.</p>
+                            <ul class="price-features">
+                                <li>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Unlimited workstations
+                                </li>
+                                <li>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Dedicated edge gateway nodes
+                                </li>
+                                <li>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Cryptographic hardware check
+                                </li>
+                                <li>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    SIEM logs integration
+                                </li>
+                                <li>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    24/7 SecOps Desk SLA
+                                </li>
+                            </ul>
+                        </div>
+                        <a href="#pricing" class="btn btn-primary" style="width: 100%;">Connect Infrastructure</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA SECTION -->
+        <section id="contact" class="section-padding cta-section-wrapper">
+            <div class="container">
+                <div class="cta-box reveal">
+                    <h2 class="cta-title">Secure Your Stack in 60 Seconds</h2>
+                    <p class="cta-desc">Deploy our lightweight endpoint protection and secure your servers, gateways, and credentials databases before exploits occur.</p>
+                    
+                    <form class="cta-form" onsubmit="event.preventDefault(); alert('Security dashboard registry initialized.');">
+                        <input type="email" placeholder="Enter workspace security email" class="cta-input" required />
+                        <button type="submit" class="btn btn-primary">Deploy Shield</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-logo-desc">
+                <a href="/" class="logo-wrap">
+                    <img src="{{ url_for('static', filename='just_logo_no_text.png') }}" alt="SecureTechAV Logo" class="logo-img filter brightness-200" />
+                    <span class="logo-text">SecureTech<span class="accent-span">AV</span></span>
+                </a>
+                <p>Advanced zero-trust endpoint protection, API gateways, database logs monitoring, and hardware attestation platforms for secure hybrid cloud infrastructure.</p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Grid Modules</h4>
+                <ul>
+                    <li><a href="#features">Zero-Trust Shield</a></li>
+                    <li><a href="#features">Runtime Verification</a></li>
+                    <li><a href="#features">Credential Sentinel</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="#about">About Grid</a></li>
+                    <li><a href="#">Security Bulletins</a></li>
+                    <li><a href="#">Engineering Log</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Developer</h4>
+                <ul>
+                    <li><a href="#">API Attestation</a></li>
+                    <li><a href="#">Daemon Setup</a></li>
+                    <li><a href="#">System Integrity status</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
+            <p>&copy; 2026 SecureTechAV Inc. Continuous attestation operational.</p>
+            <div class="footer-bottom-right">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Attestation Logs Terms</a>
+                <span class="system-status-indicator">SHIELD OPERATIONAL</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JS SCRIPTS -->
+    <script>
+        // Hamburger Toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const lines = menuBtn.querySelectorAll('span');
+
+        menuBtn.addEventListener('click', () => {
+            const isHidden = mobileMenu.style.display === 'flex';
+            if (!isHidden) {
+                mobileMenu.style.display = 'flex';
+                lines[0].style.transform = 'translateY(8px) rotate(45deg)';
+                lines[1].style.opacity = '0';
+                lines[2].style.transform = 'translateY(-8px) rotate(-45deg)';
+            } else {
+                mobileMenu.style.display = 'none';
+                lines[0].style.transform = 'none';
+                lines[1].style.opacity = '1';
+                lines[2].style.transform = 'none';
+            }
+        });
+
+        // Close mobile dropdown on links click
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.style.display = 'none';
+                lines[0].style.transform = 'none';
+                lines[1].style.opacity = '1';
+                lines[2].style.transform = 'none';
+            });
+        });
+
+        // Scrolled header background
+        const header = document.getElementById('main-header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Scroll Reveal Intersection Observer
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.08
+        });
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // Stats Counter animation
+        const statsCount = document.getElementById('threats-counter');
+        const statsObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const target = parseFloat(el.getAttribute('data-target'));
+                    let current = 0;
+                    const duration = 2000;
+                    const stepTime = 16;
+                    const steps = duration / stepTime;
+                    const increment = target / steps;
+                    
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            el.textContent = target.toLocaleString('en-US');
+                            clearInterval(timer);
+                        } else {
+                            el.textContent = Math.floor(current).toLocaleString('en-US');
+                        }
+                    }, stepTime);
+                    
+                    observer.unobserve(el);
+                }
+            });
+        }, { threshold: 0.1 });
+        if (statsCount) {
+            statsObserver.observe(statsCount);
+        }
+
+        // Live Simulated Threat Feed scrolling/tick updates
+        const threatFeed = document.getElementById('live-threat-feed');
+        const endpoints = ['GATEWAY_NORTH_API', 'PROD_K8S_NODE_03', 'DB_AUTH_PRIMARY', 'EDGE_GATE_SG_01', 'DEV_MACBOOK_12', 'AUTH_VAULT_ROUTER'];
+        const attackVectors = ['SQLi Payload Intercepted', 'Zero-Day Sandbox Shield', 'Block Encryption Terminated', 'Cred Leak Token Disabled', 'Cookie Hijack Scoped', 'Unauthorized Root Shell Blocked'];
+
+        function addThreatFeedEntry() {
+            if (!threatFeed) return;
+            const timeStr = new Date().toLocaleTimeString('en-US', { hour12: false });
+            const randomIP = `${Math.floor(Math.random() * 150) + 40}.${Math.floor(Math.random() * 200) + 12}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(Math.random() * 254) + 1}`;
+            const host = endpoints[Math.floor(Math.random() * endpoints.length)];
+            const vector = attackVectors[Math.floor(Math.random() * attackVectors.length)];
+            
+            const newRow = document.createElement('div');
+            newRow.className = 'feed-row';
+            newRow.style.opacity = '0';
+            newRow.style.transform = 'translateY(8px)';
+            newRow.innerHTML = `
+                <span class="feed-time">${timeStr}</span>
+                <span class="feed-ip">${host} (${randomIP})</span>
+                <span class="feed-vector">${vector}</span>
+                <span class="feed-badge">ISOLATED</span>
+            `;
+            
+            // Append and animate in
+            threatFeed.appendChild(newRow);
+            
+            // Trigger layout reflow for animation
+            newRow.offsetHeight;
+            
+            newRow.style.opacity = '1';
+            newRow.style.transform = 'none';
+
+            // Limit row count inside scrolling view to 5 rows
+            if (threatFeed.children.length > 5) {
+                const firstRow = threatFeed.firstElementChild;
+                firstRow.style.opacity = '0';
+                firstRow.style.transform = 'translateY(-8px)';
+                setTimeout(() => {
+                    firstRow.remove();
+                }, 400);
+            }
+        }
+
+        // Initialize first feed rows
+        for (let i = 0; i < 4; i++) {
+            setTimeout(addThreatFeedEntry, i * 200);
+        }
+
+        // Loop feed updates
+        setInterval(addThreatFeedEntry, 4000);
+
+        // Service card mouse movement radial shine effect
+        document.querySelectorAll('.service-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--x', `${x}px`);
+                card.style.setProperty('--y', `${y}px`);
+            });
+        });
+
+        // Helper to parse hex to rgba
+        function hexToRgbA(hex, alpha) {
+            let c;
+            if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+                c= hex.substring(1).split('');
+                if(c.length== 3){
+                    c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+                }
+                c= '0x' + c.join('');
+                return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
+            }
+            return `rgba(16, 185, 129, ${alpha})`; // default fallback
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // ══ INTERACTIVE BACKGROUND ENGINE SWITCHER ══
+        // ══════════════════════════════════════════════════════════════
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        const switcherBtn = document.getElementById('bg-switcher');
+        const switcherText = document.getElementById('switcher-text');
+
+        let w, h;
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Helper to query active accent color dynamically
+        function getAccentColor() {
+            return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+        }
+
+        // 🎨 Color Switcher Controller (Green, Blue, Purple, Yellow, Red)
+        const themeBtn = document.getElementById('theme-switcher');
+        const themeText = document.getElementById('theme-text');
+        
+        const themes = ['green', 'blue', 'purple', 'yellow', 'red'];
+        const themeLabels = {
+            'green': 'Theme: Green',
+            'blue': 'Theme: Blue',
+            'purple': 'Theme: Purple',
+            'yellow': 'Theme: Yellow',
+            'red': 'Theme: Red'
+        };
+        
+        const themeColors = {
+            'green': {
+                '--accent': '#10b981',
+                '--accent-hover': '#059669',
+                '--accent-glow': 'rgba(16, 185, 129, 0.15)',
+                '--border-active': 'rgba(16, 185, 129, 0.25)'
+            },
+            'blue': {
+                '--accent': '#3b82f6',
+                '--accent-hover': '#2563eb',
+                '--accent-glow': 'rgba(59, 130, 246, 0.15)',
+                '--border-active': 'rgba(59, 130, 246, 0.25)'
+            },
+            'purple': {
+                '--accent': '#a855f7',
+                '--accent-hover': '#9333ea',
+                '--accent-glow': 'rgba(168, 85, 247, 0.15)',
+                '--border-active': 'rgba(168, 85, 247, 0.25)'
+            },
+            'yellow': {
+                '--accent': '#f59e0b',
+                '--accent-hover': '#d97706',
+                '--accent-glow': 'rgba(245, 158, 11, 0.15)',
+                '--border-active': 'rgba(245, 158, 11, 0.25)'
+            },
+            'red': {
+                '--accent': '#ef4444',
+                '--accent-hover': '#dc2626',
+                '--accent-glow': 'rgba(239, 68, 68, 0.15)',
+                '--border-active': 'rgba(239, 68, 68, 0.25)'
+            }
+        };
+        
+        let currentTheme = 'green';
+        
+        themeBtn.addEventListener('click', () => {
+            const nextIndex = (themes.indexOf(currentTheme) + 1) % themes.length;
+            currentTheme = themes[nextIndex];
+            themeText.textContent = themeLabels[currentTheme];
+            
+            // Apply new variables onto document
+            const colors = themeColors[currentTheme];
+            for (const [prop, val] of Object.entries(colors)) {
+                document.documentElement.style.setProperty(prop, val);
+            }
+        });
+
+        // 5 Canvas Visual Modes: 'neural', 'grid3d', 'matrix', 'rocket', 'vortex'
+        const modes = ['neural', 'grid3d', 'matrix', 'rocket', 'vortex'];
+        const modeLabels = {
+            'neural': 'BG: Neural Mesh',
+            'grid3d': 'BG: 3D Wiregrid',
+            'matrix': 'BG: Matrix Code',
+            'rocket': 'BG: 3D Rockets',
+            'vortex': 'BG: Time Vortex'
+        };
+        let currentMode = 'neural';
+
+        switcherBtn.addEventListener('click', () => {
+            const nextIndex = (modes.indexOf(currentMode) + 1) % modes.length;
+            currentMode = modes[nextIndex];
+            switcherText.textContent = modeLabels[currentMode];
+            ctx.clearRect(0, 0, w, h);
+            if (currentMode === 'matrix') {
+                initMatrix();
+            } else if (currentMode === 'rocket') {
+                initRocket();
+            } else if (currentMode === 'vortex') {
+                initVortex();
+            }
+        });
+
+        // ────────── 1. NEURAL MESH ALGORITHM ──────────
+        const nodes = [];
+        const nodeCount = 50;
+        const connectionDist = 125;
+
+        for (let i = 0; i < nodeCount; i++) {
+            nodes.push({
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                vx: (Math.random() - 0.5) * 0.4,
+                vy: (Math.random() - 0.5) * 0.4,
+                size: Math.random() * 2 + 1,
+                alpha: Math.random() * 0.4 + 0.15
+            });
+        }
+
+        function drawNeural() {
+            ctx.clearRect(0, 0, w, h);
+            const activeAccent = getAccentColor();
+            
+            for (let i = 0; i < nodeCount; i++) {
+                const nodeA = nodes[i];
+                nodeA.x += nodeA.vx;
+                nodeA.y += nodeA.vy;
+
+                if (nodeA.x < 0 || nodeA.x > w) nodeA.vx *= -1;
+                if (nodeA.y < 0 || nodeA.y > h) nodeA.vy *= -1;
+
+                ctx.globalAlpha = nodeA.alpha;
+                ctx.fillStyle = activeAccent;
+                ctx.beginPath();
+                ctx.arc(nodeA.x, nodeA.y, nodeA.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                for (let j = i + 1; j < nodeCount; j++) {
+                    const nodeB = nodes[j];
+                    const dist = Math.hypot(nodeA.x - nodeB.x, nodeA.y - nodeB.y);
+                    if (dist < connectionDist) {
+                        const alpha = (1 - dist / connectionDist) * 0.12;
+                        ctx.strokeStyle = hexToRgbA(activeAccent, alpha);
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(nodeA.x, nodeA.y);
+                        ctx.lineTo(nodeB.x, nodeB.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        // ────────── 2. 3D WIREGRID HORIZON ALGORITHM ──────────
+        let gridOffset = 0;
+        const gridSpeed = 0.015;
+
+        function drawGrid3D() {
+            ctx.clearRect(0, 0, w, h);
+            const activeAccent = getAccentColor();
+            ctx.strokeStyle = hexToRgbA(activeAccent, 0.12);
+            ctx.lineWidth = 1;
+
+            const horizonY = h * 0.45;
+            const viewHeight = h - horizonY;
+            
+            const vanishingLines = 24;
+            const vanishingX = w / 2;
+            
+            for (let i = 0; i <= vanishingLines; i++) {
+                const fraction = i / vanishingLines;
+                const bottomX = w * (fraction * 1.6 - 0.3);
+                ctx.beginPath();
+                ctx.moveTo(vanishingX, horizonY);
+                ctx.lineTo(bottomX, h);
+                ctx.stroke();
+            }
+
+            gridOffset += gridSpeed;
+            if (gridOffset >= 1) gridOffset -= 1;
+
+            const horLines = 14;
+            for (let i = 0; i < horLines; i++) {
+                const z = i + gridOffset;
+                const ratio = z / horLines;
+                const pRatio = Math.pow(ratio, 2.2); 
+                const y = horizonY + viewHeight * pRatio;
+                const opacity = pRatio * 0.18;
+                
+                ctx.strokeStyle = hexToRgbA(activeAccent, opacity);
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+                ctx.stroke();
+            }
+
+            ctx.strokeStyle = hexToRgbA(activeAccent, 0.25);
+            ctx.beginPath();
+            ctx.moveTo(0, horizonY);
+            ctx.lineTo(w, horizonY);
+            ctx.stroke();
+        }
+
+        // ────────── 3. DIGITAL MATRIX RAIN ALGORITHM ──────────
+        let columns = [];
+        const fontSize = 12;
+        const charSet = "01$@#&%*+=-<>{}[]ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        function initMatrix() {
+            const cols = Math.floor(w / fontSize) + 1;
+            columns = [];
+            for (let i = 0; i < cols; i++) {
+                columns.push({
+                    y: Math.random() * -100,
+                    speed: Math.random() * 2 + 1
+                });
+            }
+        }
+
+        initMatrix();
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(3, 7, 18, 0.06)';
+            ctx.fillRect(0, 0, w, h);
+
+            ctx.fillStyle = getAccentColor();
+            ctx.font = `${fontSize}px var(--font-mono)`;
+
+            for (let i = 0; i < columns.length; i++) {
+                const col = columns[i];
+                const char = charSet.charAt(Math.floor(Math.random() * charSet.length));
+                const x = i * fontSize;
+                
+                ctx.fillText(char, x, col.y);
+
+                col.y += col.speed * 4;
+
+                if (col.y > h && Math.random() > 0.98) {
+                    col.y = Math.random() * -50;
+                    col.speed = Math.random() * 2 + 1;
+                }
+            }
+        }
+
+        // ────────── 4. 3D ROCKET FLEET ALGORITHM ──────────
+        let stars = [];
+        const starCount = 120;
+        let sparks = [];
+        let rockets = [];
+        const rocketCount = 6; // Squadron of 6 rockets
+
+        function initRocket() {
+            // stars initialization
+            stars = [];
+            for (let i = 0; i < starCount; i++) {
+                stars.push({
+                    x: (Math.random() - 0.5) * 1200,
+                    y: (Math.random() - 0.5) * 1200,
+                    z: Math.random() * 1000
+                });
+            }
+            
+            // squadron initialization
+            rockets = [];
+            for (let i = 0; i < rocketCount; i++) {
+                rockets.push({
+                    x: (Math.random() - 0.5) * 800,
+                    y: (Math.random() - 0.5) * 800,
+                    z: Math.random() * 900 + 100, // Z depth
+                    speed: Math.random() * 4 + 3.2,
+                    rotSpeed: (Math.random() - 0.5) * 0.03,
+                    angleY: Math.random() * Math.PI * 2,
+                    bobOffset: Math.random() * Math.PI * 2
+                });
+            }
+            sparks = [];
+        }
+
+        // 3D wireframe rocket vertices definition (X, Y, Z)
+        const rocketVertices = [
+            {x: 0,   y: -65, z: 0},   // 0: Nose tip
+            {x: 0,   y: -25, z: 14},  // 1: Upper body front
+            {x: 0,   y: -25, z: -14}, // 2: Upper body back
+            {x: -14, y: -25, z: 0},   // 3: Upper body left
+            {x: 14,  y: -25, z: 0},   // 4: Upper body right
+            {x: 0,   y: 35,  z: 14},  // 5: Lower body front
+            {x: 0,   y: 35,  z: -14}, // 6: Lower body back
+            {x: -14, y: 35,  z: 0},   // 7: Lower body left
+            {x: 14,  y: 35,  z: 0},   // 8: Lower body right
+            {x: -32, y: 45,  z: 0},   // 9: Left fin tip
+            {x: 32,  y: 45,  z: 0},   // 10: Right fin tip
+            {x: 0,   y: 45,  z: 0}    // 11: Thruster center base
+        ];
+
+        const rocketEdges = [
+            [0, 1], [0, 2], [0, 3], [0, 4], // Connect nose to body top
+            [1, 3], [3, 2], [2, 4], [4, 1], // Upper body ring
+            [5, 7], [7, 6], [6, 8], [8, 5], // Lower body ring
+            [1, 5], [2, 6], [3, 7], [4, 8], // Vertically connect rings
+            [7, 9], [5, 9],                 // Left fin
+            [8, 10], [5, 10],               // Right fin
+            [5, 11], [6, 11], [7, 11], [8, 11] // Connect to engine base
+        ];
+
+        function drawRocket() {
+            ctx.clearRect(0, 0, w, h);
+            const activeAccent = getAccentColor();
+
+            // 1. Draw Starfield
+            for (let i = 0; i < stars.length; i++) {
+                const s = stars[i];
+                s.z -= 4.5;
+                if (s.z <= 0) {
+                    s.z = 1000;
+                    s.x = (Math.random() - 0.5) * 1200;
+                    s.y = (Math.random() - 0.5) * 1200;
+                }
+
+                const k = 400.0 / s.z;
+                const sx = s.x * k + w / 2;
+                const sy = s.y * k + h / 2;
+
+                if (sx >= 0 && sx < w && sy >= 0 && sy < h) {
+                    const size = Math.max(0.5, (1 - s.z / 1000) * 2.5);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${1 - s.z / 1000})`;
+                    ctx.fillRect(sx, sy, size, size);
+                }
+            }
+
+            // 2. Add sparks and project coordinates for each active rocket
+            for (let rIdx = 0; rIdx < rockets.length; rIdx++) {
+                const r = rockets[rIdx];
+                r.z -= r.speed;
+                r.angleY += r.rotSpeed;
+
+                // Reset rocket when passing Z threshold
+                if (r.z <= 30) {
+                    r.z = 1000;
+                    r.x = (Math.random() - 0.5) * 800;
+                    r.y = (Math.random() - 0.5) * 800;
+                    r.speed = Math.random() * 4 + 3.2;
+                    r.rotSpeed = (Math.random() - 0.5) * 0.03;
+                    r.bobOffset = Math.random() * Math.PI * 2;
+                }
+
+                const rk = 300.0 / r.z; // scale factor relative to Z depth
+                const bob = Math.sin(Date.now() * 0.003 + r.bobOffset) * (rk * 4);
+                const rcx = r.x * rk + w / 2;
+                const rcy = r.y * rk + h / 2 + bob;
+
+                // Offscreen clipping
+                if (rcx < -200 || rcx > w + 200 || rcy < -200 || rcy > h + 200) {
+                    continue;
+                }
+
+                // Add sparks for this rocket's thruster base
+                if (sparks.length < 150) {
+                    const rate = r.z > 600 ? 1 : 2;
+                    for (let sIdx = 0; sIdx < rate; sIdx++) {
+                        sparks.push({
+                            x: rcx + (Math.random() - 0.5) * (rk * 4),
+                            y: rcy + (45 * rk) + (Math.random() - 0.5) * (rk * 3),
+                            vx: (Math.random() - 0.5) * (rk * 2),
+                            vy: Math.random() * (rk * 4) + (rk * 3),
+                            alpha: 1.0,
+                            size: Math.max(0.5, Math.random() * (rk * 3) + (rk * 1.5))
+                        });
+                    }
+                }
+
+                // Project 3D vertices
+                const projectedPoints = [];
+                const pitchX = 0.32;
+
+                for (let v = 0; v < rocketVertices.length; v++) {
+                    const pt = rocketVertices[v];
+                    
+                    // Y Rotation
+                    let rx = pt.x * Math.cos(r.angleY) - pt.z * Math.sin(r.angleY);
+                    let rz = pt.x * Math.sin(r.angleY) + pt.z * Math.cos(r.angleY);
+                    let ry = pt.y;
+
+                    // Pitch X tilt
+                    let finalY = ry * Math.cos(pitchX) - rz * Math.sin(pitchX);
+                    
+                    projectedPoints.push({
+                        x: rx * rk + rcx,
+                        y: finalY * rk + rcy
+                    });
+                }
+
+                // Draw wireframe lines for this rocket
+                ctx.strokeStyle = hexToRgbA(activeAccent, Math.max(0.12, 1 - r.z / 1000));
+                ctx.lineWidth = Math.max(0.6, rk * 1.6);
+
+                for (let e = 0; e < rocketEdges.length; e++) {
+                    const edge = rocketEdges[e];
+                    const ptA = projectedPoints[edge[0]];
+                    const ptB = projectedPoints[edge[1]];
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(ptA.x, ptA.y);
+                    ctx.lineTo(ptB.x, ptB.y);
+                    ctx.stroke();
+                }
+            }
+
+            // 3. Render sparks
+            for (let i = sparks.length - 1; i >= 0; i--) {
+                const p = sparks[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.035;
+                
+                if (p.alpha <= 0) {
+                    sparks.splice(i, 1);
+                    continue;
+                }
+
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.alpha > 0.65 ? '#ffffff' : (p.alpha > 0.35 ? '#f59e0b' : '#ef4444');
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        // ────────── 5. 3D TIME VORTEX ALGORITHM ──────────
+        function initVortex() {
+            ctx.clearRect(0, 0, w, h);
+        }
+
+        function drawVortex() {
+            ctx.fillStyle = 'rgba(3, 7, 18, 0.12)'; // clean trails
+            ctx.fillRect(0, 0, w, h);
+            const activeAccent = getAccentColor();
+
+            const time = Date.now() * 0.001;
+            const rings = 32;
+            const segments = 12;
+
+            const ringPoints = []; // save coordinates to draw links between rings
+
+            for (let r = 0; r < rings; r++) {
+                // Ring Z depth offset (0 near, 1 vanishing point)
+                const z = (r + (time * 0.6) % 1) / rings;
+                
+                // Perspective diameter
+                const radius = Math.pow(1 - z, 1.8) * w * 0.55;
+                if (radius <= 2) continue;
+
+                // Winding center path
+                const theta = time * 1.5 + r * 0.1;
+                const cx = w / 2 + Math.cos(theta) * (z * w * 0.15);
+                const cy = h / 2 + Math.sin(theta) * (z * h * 0.15);
+
+                const currentRing = [];
+                
+                // Segment points inside this ring
+                for (let s = 0; s < segments; s++) {
+                    const angle = (s / segments) * Math.PI * 2 + time * 0.1;
+                    const px = cx + Math.cos(angle) * radius;
+                    const py = cy + Math.sin(angle) * radius;
+                    currentRing.push({x: px, y: py});
+                }
+                ringPoints.push({ring: currentRing, z: z});
+            }
+
+            // Draw concentric rings and connect them to form wormhole grid lines
+            for (let r = 0; r < ringPoints.length; r++) {
+                const rp = ringPoints[r];
+                const opacity = (1 - rp.z) * 0.25;
+                ctx.strokeStyle = hexToRgbA(activeAccent, opacity);
+                ctx.lineWidth = (1 - rp.z) * 2.0 + 0.5;
+
+                // Draw circles
+                ctx.beginPath();
+                for (let s = 0; s < segments; s++) {
+                    const pt = rp.ring[s];
+                    if (s === 0) ctx.moveTo(pt.x, pt.y);
+                    else ctx.lineTo(pt.x, pt.y);
+                }
+                ctx.closePath();
+                ctx.stroke();
+
+                // Draw grid connections along tunnel depth (ring to next ring)
+                if (r < ringPoints.length - 1) {
+                    const nextRp = ringPoints[r + 1];
+                    for (let s = 0; s < segments; s++) {
+                        const ptA = rp.ring[s];
+                        const ptB = nextRp.ring[s];
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(ptA.x, ptA.y);
+                        ctx.lineTo(ptB.x, ptB.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // ══ MAIN ANIMATION DISPATCHER LOOP ══
+        // ══════════════════════════════════════════════════════════════
+        function animate() {
+            if (currentMode === 'neural') {
+                drawNeural();
+            } else if (currentMode === 'grid3d') {
+                drawGrid3D();
+            } else if (currentMode === 'matrix') {
+                drawMatrix();
+            } else if (currentMode === 'rocket') {
+                drawRocket();
+            } else if (currentMode === 'vortex') {
+                drawVortex();
+            }
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

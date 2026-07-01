@@ -1,0 +1,165 @@
+.projects-section {
+  padding: 100px 0;
+  background-color: var(--color-bg-alt);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.projects-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Projects Grid Layout */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.project-card {
+  position: relative;
+  background-color: var(--color-bg-base);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-subtle);
+  aspect-ratio: 4 / 3;
+}
+
+.project-media-wrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.project-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.project-card:hover .project-img {
+  transform: scale(1.05);
+}
+
+.project-img-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background-color: var(--color-bg-alt);
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.project-fallback-svg {
+  width: 36px;
+  height: 36px;
+  color: var(--color-accent);
+}
+
+/* Hover overlay styling */
+.project-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10, 31, 68, 0.95) 0%, rgba(10, 31, 68, 0.4) 60%, rgba(10, 31, 68, 0) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 32px 28px;
+  box-sizing: border-box;
+  opacity: 0;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none; /* Make overlay transparent to mouse hover interactions */
+}
+
+.project-card:hover .project-overlay {
+  opacity: 1;
+}
+
+.project-category-tag {
+  align-self: flex-start;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  letter-spacing: 1.5px;
+  background-color: rgba(255, 255, 255, 0.08);
+  padding: 4px 10px;
+  border-radius: var(--border-radius);
+  margin-bottom: 12px;
+  transform: translateY(15px);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.05s;
+}
+
+.project-card:hover .project-category-tag {
+  transform: translateY(0);
+}
+
+.project-overlay-title {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  line-height: 1.3;
+  transform: translateY(15px);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
+}
+
+.project-card:hover .project-overlay-title {
+  transform: translateY(0);
+}
+
+.project-view-btn {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transform: translateY(15px);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.15s, color 0.2s ease;
+}
+
+.project-card:hover .project-view-btn {
+  transform: translateY(0);
+}
+
+.project-view-btn:hover {
+  color: var(--color-accent);
+}
+
+.view-arrow-svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+
+.project-view-btn:hover .view-arrow-svg {
+  transform: translateX(3px);
+}
+
+/* Responsive grid layout */
+@media (max-width: 1024px) {
+  .projects-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+}

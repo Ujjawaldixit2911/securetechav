@@ -1,0 +1,80 @@
+.ctabanner-section {
+  padding: 85px 0;
+  background-color: var(--color-primary);
+  background-image: radial-gradient(circle at 80% 20%, rgba(197, 160, 89, 0.08) 0%, transparent 50%);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.ctabanner-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.ctabanner-content {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ctabanner-title {
+  font-family: var(--font-sans);
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #ffffff;
+  margin: 0 0 18px 0;
+  letter-spacing: -0.5px;
+}
+
+.ctabanner-desc {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 36px 0;
+}
+
+/* Consultation action button */
+.btn-ctabanner-action {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  background-color: var(--color-accent);
+  color: var(--color-primary);
+  padding: 14px 32px;
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.btn-ctabanner-action:hover {
+  background-color: #d1ad65;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(197, 160, 89, 0.35);
+}
+
+.cta-arrow-svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+
+.btn-ctabanner-action:hover .cta-arrow-svg {
+  transform: translateX(4px);
+}
+
+/* Responsive configurations */
+@media (max-width: 768px) {
+  .ctabanner-title {
+    font-size: 28px;
+  }
+}

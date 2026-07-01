@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+
+    <!-- ══ PRIMARY SEO ══ -->
+    <title>SecureTechAV — Security That Thinks Ahead | Aurora Shield</title>
+    <meta name="description" content="AI-powered antivirus that stops threats before they become problems. Lightweight, invisible, always protecting." />
+    <link rel="icon" href="{{ url_for('static', filename='image-5@2x.webp') }}" />
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=DM+Sans:wght@400;500;700&family=Space+Mono&display=swap" rel="stylesheet">
+
+    <!-- CSS STYLING (Clean SaaS Light Theme) -->
+    <style>
+        :root {
+            --space-black: #F8FAFC;
+            --aurora-blue: #0EA5E9;
+            --aurora-green: #10B981;
+            --aurora-violet: #8B5CF6;
+            --aurora-pink: #F472B6;
+            --glass-bg: rgba(15, 23, 42, 0.02);
+            --glass-border: rgba(15, 23, 42, 0.08);
+            --text-bright: #0F172A;
+            --text-soft: #334155;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--space-black);
+            color: var(--text-soft);
+            font-family: 'DM Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Canvas Aurora Background */
+        #aurora-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+        }
+
+        /* Glassmorphism check styling support fallback */
+        @supports not (backdrop-filter: blur(1px)) {
+            .glass-panel {
+                background: rgba(255, 255, 255, 0.95) !important;
+            }
+        }
+
+        /* Navbar */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+            height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5%;
+        }
+
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--text-bright);
+        }
+
+        .logo-text span {
+            color: var(--aurora-blue);
+        }
+
+        header nav {
+            display: flex;
+            gap: 40px;
+        }
+
+        header nav a {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--text-soft);
+            text-decoration: none;
+            position: relative;
+            padding-bottom: 6px;
+            transition: color 0.3s ease;
+        }
+
+        header nav a:hover {
+            color: var(--text-bright);
+        }
+
+        header nav a:hover::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background-color: var(--aurora-blue);
+            border-radius: 50%;
+        }
+
+        .nav-btn-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-ghost {
+            color: var(--text-soft);
+            background: transparent;
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 10px 16px;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .btn-ghost:hover {
+            color: var(--text-bright);
+        }
+
+        .btn-glass {
+            background: rgba(15, 23, 42, 0.04);
+            border: 1px solid rgba(15, 23, 42, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--text-bright);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            border-radius: 8px;
+            padding: 10px 24px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-glass:hover {
+            background: rgba(15, 23, 42, 0.08);
+            border-color: rgba(15, 23, 42, 0.2);
+        }
+
+        .btn-aurora {
+            background: linear-gradient(135deg, var(--aurora-blue), var(--aurora-violet));
+            color: #FFFFFF;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            padding: 11px 24px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 8px 32px rgba(14, 165, 233, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-aurora:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* Mobile Hamburger */
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .hamburger span {
+            width: 24px;
+            height: 2px;
+            background-color: var(--text-bright);
+            transition: all 0.3s ease;
+        }
+
+        #mobile-menu {
+            display: none;
+            position: fixed;
+            top: 68px;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+            padding: 30px 5%;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 99;
+        }
+
+        #mobile-menu a {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 16px;
+            color: var(--text-soft);
+            text-decoration: none;
+            padding: 10px 0;
+            transition: color 0.3s ease;
+        }
+
+        #mobile-menu a:hover {
+            color: var(--text-bright);
+        }
+
+        /* Solid backing blocks for sections after hero */
+        .content-block {
+            position: relative;
+            background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%) !important;
+            z-index: 1;
+        }
+
+        /* Hero */
+        #hero {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 160px 6% 120px 6%;
+            box-sizing: border-box;
+            position: relative;
+            background: transparent !important;
+        }
+
+        .trust-badge {
+            display: inline-block;
+            background: rgba(14, 165, 233, 0.08);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            color: var(--aurora-blue);
+            font-size: 13px;
+            border-radius: 100px;
+            padding: 8px 20px;
+            margin-bottom: 30px;
+            animation: badge-float 3s ease-in-out infinite;
+        }
+
+        @keyframes badge-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        .hero-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 80px;
+            font-weight: 700;
+            line-height: 1.05;
+            color: var(--text-bright);
+            margin: 0 0 24px 0;
+            letter-spacing: -2px;
+        }
+
+        .hero-title span.gradient {
+            background: linear-gradient(135deg, var(--aurora-blue) 0%, var(--aurora-violet) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 20px;
+            color: var(--text-soft);
+            line-height: 1.7;
+            max-width: 560px;
+            margin: 0 auto 48px auto;
+            font-weight: 300;
+        }
+
+        .hero-btn-row {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .hero-btn-row .btn-aurora {
+            height: 56px;
+            padding: 0 40px;
+            border-radius: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            box-shadow: 0 16px 48px rgba(14, 165, 233, 0.25);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-btn-row .btn-aurora:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 60px rgba(14, 165, 233, 0.35);
+        }
+
+        .hero-btn-row .btn-glass {
+            height: 56px;
+            padding: 0 32px;
+            border-radius: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-trust-row {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            font-size: 13px;
+            color: var(--text-soft);
+            opacity: 0.8;
+            margin-bottom: 80px;
+        }
+
+        .hero-trust-row span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hero-trust-row span::before {
+            content: '✓';
+            color: var(--aurora-blue);
+            font-weight: bold;
+        }
+
+        /* Mockup Glass Card */
+        .hero-mockup-wrap {
+            position: relative;
+            background: rgba(255, 255, 255, 0.4) !important;
+            border: 1px solid rgba(15, 23, 42, 0.08) !important;
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 32px 80px rgba(15, 23, 42, 0.08);
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .hero-mockup-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 30px;
+            background: radial-gradient(circle, var(--aurora-blue) 0%, var(--aurora-violet) 100%);
+            filter: blur(80px);
+            opacity: 0.08;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .hero-mockup-wrap img {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            display: block;
+            background: #FFFFFF;
+            border: 1px solid rgba(15, 23, 42, 0.05);
+        }
+
+        .corner-badge {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 11px;
+            color: var(--text-bright);
+            font-family: 'Space Mono', monospace;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+        }
+
+        .badge-tl { top: 40px; left: -20px; color: var(--aurora-green); }
+        .badge-tr { top: 40px; right: -20px; color: var(--aurora-blue); }
+        .badge-bl { bottom: 40px; left: -20px; }
+        .badge-br { bottom: 40px; right: -20px; }
+
+        /* Companies Strip */
+        .companies-strip {
+            background: rgba(15, 23, 42, 0.01);
+            border-top: 1px solid rgba(15, 23, 42, 0.04);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .companies-strip span.label {
+            font-size: 13px;
+            color: var(--text-soft);
+            opacity: 0.6;
+            display: block;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .company-logos-row {
+            display: flex;
+            justify-content: center;
+            gap: 64px;
+            flex-wrap: wrap;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: rgba(15, 23, 42, 0.3);
+        }
+
+        /* Skew Visual Separator */
+        .companies-strip.content-block::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(180deg, transparent, #FFFFFF);
+            pointer-events: none;
+        }
+
+        /* Features */
+        .section-wrap {
+            padding: 140px 8%;
+            box-sizing: border-box;
+        }
+
+        .sec-title-wrap {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .sec-title-wrap h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 52px;
+            color: var(--text-bright);
+            margin: 0;
+        }
+
+        .sec-title-wrap h2 span.weight-light {
+            font-weight: 300;
+        }
+
+        .sec-title-wrap h2 span.gradient {
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--aurora-blue), var(--aurora-violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .grid-seamless {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background-color: rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .feature-cell {
+            padding: 48px 36px;
+            background-color: rgba(255, 255, 255, 0.75); /* Translucent white cell */
+            transition: all 0.3s ease;
+        }
+
+        .feature-cell:hover {
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .cell-icon-box {
+            width: 48px;
+            height: 48px;
+            background: rgba(14, 165, 233, 0.08);
+            border: 1px solid rgba(14, 165, 233, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 24px;
+            color: var(--aurora-blue);
+        }
+
+        .cell-bar {
+            height: 2px;
+            width: 40px;
+            background: linear-gradient(90deg, var(--aurora-blue), transparent);
+            margin-bottom: 20px;
+        }
+
+        .cell-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin: 0 0 12px 0;
+        }
+
+        .cell-desc {
+            font-size: 14px;
+            color: var(--text-soft);
+            line-height: 1.8;
+            margin: 0;
+            font-weight: 300;
+        }
+
+        /* Showcase split */
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: 45% 55%;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .showcase-left-wrap {
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+        }
+
+        .showcase-left-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent, rgba(15, 23, 42, 0.05));
+            pointer-events: none;
+        }
+
+        .showcase-left-wrap img {
+            width: 100%;
+            height: auto;
+            display: block;
+            filter: contrast(105%);
+        }
+
+        .showcase-eyebrow {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            color: var(--aurora-blue);
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+        }
+
+        .showcase-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 44px;
+            font-weight: 700;
+            color: var(--text-bright);
+            line-height: 1.15;
+            margin: 0 0 40px 0;
+        }
+
+        .showcase-row {
+            border-left: 2px solid var(--aurora-blue);
+            padding-left: 20px;
+            margin-bottom: 28px;
+        }
+
+        .showcase-row-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin: 0 0 6px 0;
+        }
+
+        .showcase-row-desc {
+            font-size: 14px;
+            color: var(--text-soft);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Billing Toggle */
+        .billing-toggle-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 60px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-bright);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            background: rgba(15, 23, 42, 0.08);
+            border: 1px solid var(--glass-border);
+            border-radius: 100px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--text-bright);
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .toggle-active .toggle-btn {
+            left: 27px;
+            background-color: var(--aurora-blue);
+        }
+
+        .discount-badge {
+            background-color: var(--aurora-blue);
+            color: #FFFFFF;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Space Mono', monospace;
+        }
+
+        /* Pricing Card Grid */
+        .pricing-seamless {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background-color: rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 24px;
+            overflow: hidden;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .price-card {
+            background-color: rgba(255, 255, 255, 0.75); /* Translucent light backing */
+            padding: 56px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+        }
+
+        .price-card.tier-free {
+            background-color: rgba(15, 23, 42, 0.01);
+        }
+
+        .price-card.tier-pro {
+            background-color: rgba(14, 165, 233, 0.04);
+            border: 2px solid var(--aurora-blue);
+            z-index: 10;
+        }
+
+        .price-card.tier-enterprise {
+            background-color: rgba(139, 92, 246, 0.04);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .price-badge {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: linear-gradient(135deg, var(--aurora-blue), var(--aurora-violet));
+            color: #FFFFFF;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 100px;
+            letter-spacing: 1px;
+        }
+
+        .price-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            color: var(--text-bright);
+            margin: 0 0 24px 0;
+        }
+
+        .price-amt-wrap {
+            margin-bottom: 40px;
+        }
+
+        .price-amt {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 56px;
+            font-weight: 700;
+            color: var(--text-bright);
+            line-height: 1;
+        }
+
+        .price-amt span.period {
+            font-size: 16px;
+            color: var(--text-soft);
+            font-weight: 300;
+        }
+
+        .price-features-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 48px 0;
+            border-top: 1px solid rgba(15, 23, 42, 0.08);
+            padding-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .price-features-list li {
+            font-size: 14px;
+            color: var(--text-soft);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .price-features-list li::before {
+            content: '✓';
+            color: var(--aurora-blue);
+        }
+
+        .price-features-list li.disabled {
+            opacity: 0.35;
+        }
+
+        .price-features-list li.disabled::before {
+            content: '✗';
+            color: var(--aurora-pink);
+        }
+
+        .price-card .btn-glass, .price-card .btn-aurora {
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .btn-purple-outline {
+            background: transparent;
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            color: var(--aurora-violet);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            border-radius: 8px;
+            padding: 10px 24px;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-purple-outline:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.6);
+        }
+
+        /* Final CTA */
+        .final-cta-section {
+            padding: 120px 8%;
+            text-align: center;
+        }
+
+        .cta-glass-box {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 80px 40px;
+            background: rgba(255, 255, 255, 0.7) !important;
+            border: 1px solid rgba(15, 23, 42, 0.08) !important;
+            border-radius: 32px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.04);
+        }
+
+        .cta-glass-box h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 48px;
+            color: var(--text-bright);
+            margin: 0 0 16px 0;
+            letter-spacing: -1px;
+        }
+
+        .cta-glass-box p {
+            font-size: 18px;
+            color: var(--text-soft);
+            margin: 0 0 40px 0;
+            font-weight: 300;
+        }
+
+        .cta-input-row {
+            display: flex;
+            max-width: 480px;
+            margin: 0 auto 24px auto;
+            border: 1px solid rgba(15, 23, 42, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            background: #FFFFFF;
+            padding: 6px;
+        }
+
+        .cta-input-row input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-bright);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            padding: 12px 20px;
+            outline: none;
+        }
+
+        .cta-input-row input::placeholder {
+            color: #94A3B8;
+        }
+
+        .cta-input-row button {
+            background: linear-gradient(135deg, var(--aurora-blue), var(--aurora-violet));
+            color: #FFFFFF;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            padding: 0 24px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: opacity 0.3s;
+        }
+
+        .cta-input-row button:hover {
+            opacity: 0.9;
+        }
+
+        .cta-trust-info {
+            font-size: 12px;
+            color: #64748B;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #F8FAFC !important; /* solid footer light bg */
+            border-top: 1px solid rgba(15, 23, 42, 0.08);
+            padding: 100px 8% 40px 8%;
+            box-sizing: border-box;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+
+        .footer-logo-desc p {
+            font-size: 13px;
+            color: var(--text-soft);
+            line-height: 1.8;
+            max-width: 320px;
+            margin: 20px 0 0 0;
+        }
+
+        .footer-col h4 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: var(--text-bright);
+            text-transform: uppercase;
+            margin: 0 0 24px 0;
+        }
+
+        .footer-col ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .footer-col ul a {
+            font-size: 13px;
+            color: var(--text-soft);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-col ul a:hover {
+            color: var(--text-bright);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(15, 23, 42, 0.05);
+            padding-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #64748B;
+        }
+
+        .footer-bottom-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-bottom-links a {
+            color: #64748B;
+            text-decoration: none;
+        }
+
+        .footer-bottom-links a:hover {
+            color: var(--text-bright);
+        }
+
+        /* Scroll reveal observer classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive Setup */
+        @media (max-width: 1024px) {
+            #hero {
+                padding-top: 130px;
+            }
+
+            .hero-title {
+                font-size: 56px;
+            }
+
+            .grid-seamless, .pricing-seamless {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                background-color: transparent;
+                border: none;
+                border-radius: 0;
+            }
+
+            .feature-cell {
+                border-radius: 16px;
+                border: 1px solid rgba(15, 23, 42, 0.08);
+            }
+
+            .pricing-seamless {
+                max-width: 440px;
+            }
+
+            .price-card {
+                border-radius: 20px;
+                border: 1px solid rgba(15, 23, 42, 0.08);
+            }
+
+            .showcase-grid {
+                grid-template-columns: 1fr;
+                gap: 60px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header nav, .nav-btn-group {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .hero-title {
+                font-size: 42px;
+            }
+
+            .hero-btn-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .hero-trust-row {
+                flex-direction: column;
+                gap: 16px;
+                align-items: center;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .corner-badge {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Canvas Background -->
+    <canvas id="aurora-canvas"></canvas>
+
+    <!-- HEADER -->
+    <header>
+        <div class="logo-wrap" style="padding-left: 5%;">
+            <a href="/" class="logo-wrap">
+                <img src="{{ url_for('static', filename='just_logo_no_text.png') }}" height="36" alt="Logo" />
+                <span class="logo-text">SecureTech<span>AV</span></span>
+            </a>
+        </div>
+
+        <nav>
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#about">About</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#contact">Contact</a>
+        </nav>
+
+        <div class="nav-btn-group" style="padding-right: 5%;">
+            <button class="btn-ghost">Sign In</button>
+            <a href="#pricing" class="btn-glass">Free Trial</a>
+            <a href="#pricing" class="btn-aurora">Get Protected →</a>
+        </div>
+
+        <button class="hamburger" id="hamburger-toggle" aria-label="Toggle Menu" style="margin-right: 5%;">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <!-- Mobile Dropdown Menu -->
+    <div id="mobile-menu">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#about">About</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#contact">Contact</a>
+    </div>
+
+    <!-- HERO -->
+    <section id="hero">
+        <div class="trust-badge">🛡️ Now protecting 10 million devices worldwide</div>
+        <h1 class="hero-title">
+            Security That<br/>
+            <span class="gradient">Thinks Ahead</span>
+        </h1>
+        <p class="hero-desc font-inter">
+            AI-powered antivirus that stops threats before they become problems. Lightweight. Invisible. Always protecting.
+        </p>
+
+        <div class="hero-btn-row">
+            <a href="#pricing" class="btn-aurora">Start Free Trial</a>
+            <a href="#how-it-works" class="btn-glass">See How It Works</a>
+        </div>
+
+        <div class="hero-trust-row font-inter">
+            <span>No credit card</span>
+            <span>Cancel anytime</span>
+            <span>30-day free trial</span>
+        </div>
+
+        <!-- Glass card mockup -->
+        <div class="hero-mockup-wrap reveal">
+            <div class="corner-badge badge-tl">🟢 Real-time</div>
+            <div class="corner-badge badge-tr">AI Active</div>
+            <div class="corner-badge badge-bl">0 Threats</div>
+            <div class="corner-badge badge-br">CPU: 0.4%</div>
+            <img src="{{ url_for('static', filename='securetech_av.png') }}" alt="SecureTechAV App Interface" />
+        </div>
+    </section>
+
+    <!-- COMPANIES STRIP (FIRST SECTION AFTER HERO - CONTAINS FADE SEPARATOR) -->
+    <section class="companies-strip content-block">
+        <span class="label font-inter">Trusted by teams at:</span>
+        <div class="company-logos-row">
+            <span>ACME Corp</span>
+            <span>TechFlow</span>
+            <span>DataVault</span>
+            <span>CyberShield</span>
+            <span>NetCore</span>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="how-it-works" class="section-wrap content-block">
+        <div class="sec-title-wrap">
+            <h2 class="sec-title"><span class="weight-light">Get Protected in</span> 3 Simple Steps</h2>
+            <div class="w-16 h-1 bg-saasBlue mx-auto mt-4"></div>
+        </div>
+
+        <div class="grid-seamless" style="background-color:transparent; border:none;">
+            <!-- Step 1 -->
+            <div class="feature-cell reveal" style="border-radius:16px; border:1px solid rgba(15, 23, 42, 0.08); text-align:center; padding:40px 24px;">
+                <div class="cell-icon-box" style="margin: 0 auto 24px auto;">①</div>
+                <h3 class="cell-title">Download & Install</h3>
+                <p class="cell-desc">Get our lightweight installer file. Set up the shield client on your device in seconds.</p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="feature-cell reveal" style="border-radius:16px; border:1px solid rgba(15, 23, 42, 0.08); text-align:center; padding:40px 24px;">
+                <div class="cell-icon-box" style="margin: 0 auto 24px auto;">②</div>
+                <h3 class="cell-title">Run Smart Scan</h3>
+                <p class="cell-desc">Scan system registers and memory buffers. Neutralize active anomalies instantly.</p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="feature-cell reveal" style="border-radius:16px; border:1px solid rgba(15, 23, 42, 0.08); text-align:center; padding:40px 24px;">
+                <div class="cell-icon-box" style="margin: 0 auto 24px auto;">③</div>
+                <h3 class="cell-title">Stay Protected</h3>
+                <p class="cell-desc">Our heuristics run silently behind the scenes, scanning files dynamically.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features" class="section-wrap content-block">
+        <div class="sec-title-wrap">
+            <h2><span class="weight-light">One product.</span> <span class="gradient">Total protection.</span></h2>
+        </div>
+
+        <div class="grid-seamless">
+            <!-- Cell 1 -->
+            <div class="feature-cell reveal">
+                <div class="cell-icon-box">⚡</div>
+                <div class="cell-bar"></div>
+                <h3 class="cell-title">Real-Time Protection</h3>
+                <p class="cell-desc">Continuously sweeps file additions, blocking trojan anomalies before execution occurs.</p>
+            </div>
+
+            <!-- Cell 2 -->
+            <div class="feature-cell reveal">
+                <div class="cell-icon-box">🧠</div>
+                <div class="cell-bar"></div>
+                <h3 class="cell-title">AI Threat Analysis</h3>
+                <p class="cell-desc">Cloud heuristics model tracks operations, isolating zero-day exploits instantly.</p>
+            </div>
+
+            <!-- Cell 3 -->
+            <div class="feature-cell reveal">
+                <div class="cell-icon-box">🔐</div>
+                <div class="cell-bar"></div>
+                <h3 class="cell-title">Ransomware Defense</h3>
+                <p class="cell-desc">Isolates folder registers to prevent illegal software payloads from locking files.</p>
+            </div>
+
+            <!-- Cell 4 -->
+            <div class="feature-cell reveal">
+                <div class="cell-icon-box">🌐</div>
+                <div class="cell-bar"></div>
+                <h3 class="cell-title">Network Guardian</h3>
+                <p class="cell-desc">Filters traffic packets dynamically to prevent script execution leaks.</p>
+            </div>
+
+            <!-- Cell 5 -->
+            <div class="feature-cell reveal">
+                <div class="cell-icon-box">👁️</div>
+                <div class="cell-bar"></div>
+                <h3 class="cell-title">Dark Web Alerts</h3>
+                <p class="cell-desc">Monitors leaks database to notify you of password vulnerabilities.</p>
+            </div>
+
+            <!-- Cell 6 -->
+            <div class="feature-cell reveal">
+                <div class="cell-icon-box">🚀</div>
+                <div class="cell-bar"></div>
+                <h3 class="cell-title">Zero Performance Hit</h3>
+                <p class="cell-desc">Utilizes cloud-side processing maps, taking under 0.4% local CPU usage.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SHOWCASE -->
+    <section id="about" class="section-wrap content-block">
+        <div class="showcase-grid">
+            <div class="showcase-left-wrap reveal">
+                <img src="{{ url_for('static', filename='about.png') }}" alt="SecureTechAV Monitor Operations" />
+            </div>
+
+            <div class="reveal">
+                <div class="showcase-eyebrow">WHY WE'RE DIFFERENT</div>
+                <h2 class="showcase-title">Complete Privacy Protection</h2>
+                
+                <div class="showcase-row">
+                    <h3 class="showcase-row-title">Safeguard your banking credentials</h3>
+                    <p class="showcase-row-desc">Seals session cookies and password stores from credential grabbers.</p>
+                </div>
+
+                <div class="showcase-row">
+                    <h3 class="showcase-row-title">Blocks webcam spying attempts</h3>
+                    <p class="showcase-row-desc">Restricts hardware drivers unless user permission is logged.</p>
+                </div>
+
+                <div class="showcase-row">
+                    <h3 class="showcase-row-title">Encrypts outgoing internet data</h3>
+                    <p class="showcase-row-desc">Integrated network wrappers secure outbound traffic packets.</p>
+                </div>
+
+                <div class="showcase-row">
+                    <h3 class="showcase-row-title">Anti-phishing email damping</h3>
+                    <p class="showcase-row-desc">Flags malicious links inside templates before clicks execute.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING -->
+    <section id="pricing" class="section-wrap content-block">
+        <div class="sec-title-wrap">
+            <h2>Transparent pricing for everyone</h2>
+        </div>
+
+        <div class="billing-toggle-wrap">
+            <span>Monthly Billing</span>
+            <div class="toggle-switch" id="billing-toggle" aria-label="Toggle Billing Mode">
+                <div class="toggle-btn"></div>
+            </div>
+            <span>Annual Billing</span>
+            <span class="discount-badge">Save 40%</span>
+        </div>
+
+        <div class="pricing-seamless">
+            <!-- Free -->
+            <div class="price-card tier-free reveal">
+                <div>
+                    <h3>Secure Free</h3>
+                    <div class="price-amt-wrap">
+                        <div class="price-amt">$0<span class="period">/mo</span></div>
+                    </div>
+                    <ul class="price-features-list">
+                        <li>Basic Scan Checks</li>
+                        <li>1 Active Device</li>
+                        <li class="disabled">AI Heuristics Engine</li>
+                        <li class="disabled">Dark Web surveillance</li>
+                    </ul>
+                </div>
+                <a href="#pricing" class="btn-glass">Free Trial</a>
+            </div>
+
+            <!-- Pro -->
+            <div class="price-card tier-pro reveal">
+                <span class="price-badge">Most Popular</span>
+                <div>
+                    <h3>Secure Pro</h3>
+                    <div class="price-amt-wrap">
+                        <div class="price-amt" id="pro-price" data-monthly="$9.99" data-annual="$5.99">$9.99<span class="period">/mo</span></div>
+                    </div>
+                    <ul class="price-features-list">
+                        <li>AI Real-Time Shields</li>
+                        <li>5 Devices Active</li>
+                        <li>Zero-Day Sandboxing</li>
+                        <li>Dark Web Alerts</li>
+                    </ul>
+                </div>
+                <a href="#pricing" class="btn-aurora">Start Free Trial</a>
+            </div>
+
+            <!-- Enterprise -->
+            <div class="price-card tier-enterprise reveal">
+                <div>
+                    <h3>Secure Enterprise</h3>
+                    <div class="price-amt-wrap">
+                        <div class="price-amt">Custom</div>
+                    </div>
+                    <ul class="price-features-list">
+                        <li>Network Node Defense</li>
+                        <li>Unlimited Devices</li>
+                        <li>SecOps Diagnostics</li>
+                        <li>Priority Node support</li>
+                    </ul>
+                </div>
+                <a href="#pricing" class="btn-purple-outline">Contact Sales</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section id="contact" class="final-cta-section content-block">
+        <div class="cta-glass-box reveal">
+            <h2>Start free. Stay protected.</h2>
+            <p>Free 30-day trial, no credit card required.</p>
+            <div class="cta-input-row font-inter">
+                <input type="email" placeholder="Enter your email" />
+                <button type="button">Get Started</button>
+            </div>
+            <div class="cta-trust-info font-inter">
+                No credit card &bull; Cancel anytime &bull; 30-day trial
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="content-block">
+        <div class="footer-grid font-inter">
+            <div class="footer-logo-desc">
+                <div class="logo-wrap" style="margin-bottom: 20px;">
+                    <img src="{{ url_for('static', filename='just_logo_no_text.png') }}" height="36" alt="Logo" />
+                    <span class="logo-text">SecureTech<span>AV</span></span>
+                </div>
+                <p>AI-driven security shield providing network and computer protection from zero-day threats.</p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Product</h4>
+                <ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#pricing">Pricing Plans</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#">Security Alerts</a></li>
+                    <li><a href="#">Resources</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Use</a></li>
+                    <li><a href="#">Alerts Status</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom font-inter">
+            <span>&copy; 2026 SecureTechAV Private Limited. All rights reserved.</span>
+            <div class="footer-bottom-links">
+                <a href="#">Privacy Node</a>
+                <a href="#">Status</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JS SCRIPTS -->
+    <script>
+        // Hamburger Menu Toggle
+        const menuBtn = document.getElementById('hamburger-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const lines = menuBtn.querySelectorAll('span');
+
+        menuBtn.addEventListener('click', () => {
+            const isHidden = mobileMenu.style.display === 'flex';
+            if (!isHidden) {
+                mobileMenu.style.display = 'flex';
+                lines[0].style.transform = 'translateY(7px) rotate(45deg)';
+                lines[1].style.opacity = '0';
+                lines[2].style.transform = 'translateY(-7px) rotate(-45deg)';
+            } else {
+                mobileMenu.style.display = 'none';
+                lines[0].style.transform = 'none';
+                lines[1].style.opacity = '1';
+                lines[2].style.transform = 'none';
+            }
+        });
+
+        // Close mobile menu on click
+        const mobileLinks = document.querySelectorAll('#mobile-menu a');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.style.display = 'none';
+                lines[0].style.transform = 'none';
+                lines[1].style.opacity = '1';
+                lines[2].style.transform = 'none';
+            });
+        });
+
+        // Billing Toggle Switch
+        const billingToggle = document.getElementById('billing-toggle');
+        const proPrice = document.getElementById('pro-price');
+
+        billingToggle.addEventListener('click', () => {
+            billingToggle.classList.toggle('toggle-active');
+            const isAnnual = billingToggle.classList.contains('toggle-active');
+            
+            if (isAnnual) {
+                proPrice.innerHTML = proPrice.getAttribute('data-annual') + '<span class="period">/mo</span>';
+            } else {
+                proPrice.innerHTML = proPrice.getAttribute('data-monthly') + '<span class="period">/mo</span>';
+            }
+        });
+
+        // Scroll reveals IntersectionObserver
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.15
+        });
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // Canvas 2D Aurora background mesh gradient (Light blue color theme)
+        const canvas = document.getElementById('aurora-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let w, h;
+        let mouseX = 0, mouseY = 0;
+        let targetMouseX = 0, targetMouseY = 0;
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousemove', (e) => {
+            targetMouseX = e.clientX;
+            targetMouseY = e.clientY;
+        });
+
+        resize();
+
+        // 5 Aurora blobs styled with light blue hues
+        const blobs = [
+            { color: '#E0F2FE', r: 320, speed: 0.003, angle: 0, ampX: 200, ampY: 150, startX: w*0.3, startY: h*0.4 },
+            { color: '#BAE6FD', r: 360, speed: 0.002, angle: Math.PI/2, ampX: 250, ampY: 100, startX: w*0.7, startY: h*0.3 },
+            { color: '#7DD3FC', r: 280, speed: 0.004, angle: Math.PI, ampX: 150, ampY: 200, startX: w*0.5, startY: h*0.7 },
+            { color: '#F0F9FF', r: 220, speed: 0.0025, angle: Math.PI*1.5, ampX: 180, ampY: 120, startX: w*0.2, startY: h*0.8 },
+            { color: '#BAE6FD', r: 420, speed: 0.001, angle: 0.7, ampX: 300, ampY: 250, startX: w*0.8, startY: h*0.8 }
+        ];
+
+        let time = 0;
+
+        function animate() {
+            time += 1;
+            ctx.fillStyle = '#F8FAFC'; // Solid Light Gray base instead of dark
+            ctx.fillRect(0, 0, w, h);
+
+            // Lerp mouse
+            mouseX += (targetMouseX - mouseX) * 0.02;
+            mouseY += (targetMouseY - mouseY) * 0.02;
+
+            blobs.forEach((blob, idx) => {
+                // Base movement
+                const currentAngle = time * blob.speed + blob.angle;
+                let tx = blob.startX + Math.sin(currentAngle) * blob.ampX;
+                let ty = blob.startY + Math.cos(currentAngle) * blob.ampY;
+
+                // Mouse attraction
+                tx += (mouseX - w/2) * (0.05 * (idx + 1));
+                ty += (mouseY - h/2) * (0.05 * (idx + 1));
+
+                ctx.globalAlpha = 0.45; // Increased alpha for high contrast visibility on white/light bg
+                ctx.globalCompositeOperation = 'source-over';
+
+                const grad = ctx.createRadialGradient(tx, ty, 0, tx, ty, blob.r);
+                grad.addColorStop(0, blob.color);
+                grad.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(tx, ty, blob.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>
